@@ -1,0 +1,5 @@
+/src/web-ext-artifacts
+*.swp
+/node_modules
+/src/lib
+/dist
