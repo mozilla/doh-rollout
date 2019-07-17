@@ -1,0 +1,72 @@
+{
+  "prefTypes": {
+    "network.trr.mode": "int",
+    "network.trr.uri": "string",
+    "network.trr.disable-ECS": "bool",
+    "network.trr.experimentalRollout": "int",
+    "network.trr.experimentalPerfInterval": "int",
+    "network.trr.experimentalPerfRepeatCount": "int"
+  },
+  "statePref": "network.trr.experimentalRollout",
+  "states": {
+    "loaded": {
+      "id": 0,
+      "_comment": "Extension loaded but disclosure hasn't loaded yet (shouldn't be observable)",
+      "prefs": {
+      },
+      "persistPrefs": {
+      }
+    },
+    "enabled": {
+      "id": 1,
+      "_comment": "User has been presented with disclosure message",
+      "prefs": {
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 2,
+        "network.trr.disable-ECS": true,
+        "network.trr.experimentalPerfInterval": 86400000,
+        "network.trr.experimentalPerfRepeatCount": 3
+      },
+      "persistPrefs": {
+      }
+    },
+    "UIDisabled": {
+      "id": -1,
+      "_comment": "User saw disclosure and disabled the experiment",
+      "prefs": {
+      },
+      "persistPrefs": {
+        "network.trr.mode": 5
+      }
+    },
+    "uninstalled": {
+      "id": -2,
+      "_comment": "Addon was removed other than disabled. This is the fallback also when an addon uninstall happens and the current state isn't a negative value.",
+      "prefs": {
+      },
+      "persistPrefs": {
+      }
+    },
+    "disabled": {
+      "id": -3,
+      "_comment": "Addon was disabled, probably through about:addons. Exemptions include other minus states, if the user saw the banner and clicked ok they will end with -4 even on disable.",
+      "prefs": {
+      },
+      "persistPrefs": {
+      }
+    },
+    "UIOk": {
+      "id": -4,
+      "_comment": "User saw disclosure and clicked OK",
+      "prefs": {
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 2,
+        "network.trr.disable-ECS": true,
+        "network.trr.experimentalPerfInterval": 86400000,
+        "network.trr.experimentalPerfRepeatCount": 3
+      },
+      "persistPrefs": {
+      }
+    }
+  }
+}
