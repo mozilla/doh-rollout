@@ -1,6 +1,7 @@
 "use strict";
-
 /* global browser */
+
+
 const STUDY_URL = browser.extension.getURL("study.html");
 const SETTING_NAME = "trr";
 const baseStudySetup = {
@@ -47,11 +48,12 @@ const baseStudySetup = {
   allowEnroll: true,
 };
 
+
 const stateManager = {
   _settingName: null,
 
   set settingName(settingName) {
-    if (this._settingName == null) {
+    if (this._settingName === null) {
       this._settingName = settingName;
     } else {
       throw new Error("already set setting");
@@ -59,7 +61,7 @@ const stateManager = {
   },
 
   get settingName() {
-    if (this._settingName == null) {
+    if (this._settingName === null) {
       throw new Error("set setting not set");
     } else {
       return this._settingName;
@@ -94,6 +96,7 @@ const stateManager = {
   }
 };
 
+
 const rollout = {
   async init() {
     browser.browserAction.onClicked.addListener(() => {
@@ -104,7 +107,7 @@ const rollout = {
       stateManager.clear(ending);
     });
     browser.study.onReady.addListener(() => {
-      this.onReady()
+      this.onReady();
     });
     await browser.study.setup(baseStudySetup);
     browser.runtime.onMessage.addListener((...args) => this.handleMessage(...args));
@@ -132,7 +135,7 @@ const rollout = {
       stateManager.endStudy("ineligible");
     }
     const variation = studyInfo.variation.name;
-    if (variation == "control") {
+    if (variation === "control") {
       // Return early as we don't have a control.json file
       return;
     }
@@ -193,7 +196,7 @@ const rollout = {
     // Sanity check that our interval pref is never smaller than 1 minute
     let minInterval = 60 * 1000;
     if (prereq["network.trr.mode"] !== 2 &&
-        prereq["network.trr.uri"] != "https://mozilla.cloudflare-dns.com/dns-query" &&
+        prereq["network.trr.uri"] !== "https://mozilla.cloudflare-dns.com/dns-query" &&
         interval > minInterval &&
         repeatCount > 0) {
       stateManager.endStudy("ineligible");
@@ -242,5 +245,5 @@ const rollout = {
   }
 };
 
-rollout.init();
 
+rollout.init();
