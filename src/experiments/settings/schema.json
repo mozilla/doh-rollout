@@ -1,0 +1,106 @@
+[
+  {
+    "namespace": "experiments.settings",
+    "description": "Manage prefs for an addon",
+    "types": [
+      {
+        "id": "pref",
+        "type": "object",
+        "description": "Preference to set",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "any"
+          }
+        }
+      }
+    ],
+    "functions": [
+      {
+        "name": "getStrings",
+        "type": "function",
+        "description": "Gets the brand strings",
+        "parameters": [
+          {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "hasModifiedPrerequisites",
+        "type": "function",
+        "description": "Returns a bool of if the user has modified the agreed prereq prefs",
+        "parameters": [
+        ],
+        "async": true
+      },
+      {
+        "name": "prerequisites",
+        "type": "function",
+        "description": "Returns an object of user prereq prefs",
+        "parameters": [
+        ],
+        "async": true
+      },
+      {
+        "name": "get",
+        "type": "function",
+        "description": "Gets the value of the preference manager",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "settingName"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "clear",
+        "type": "function",
+        "description": "Deletes the extension and clears up",
+        "parameters": [
+          {
+            "type": "any",
+            "name": "stateName"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "set",
+        "type": "function",
+        "description": "Sets the value of the preference manager",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "settingName"
+          },
+          {
+            "type": "any",
+            "name": "value"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "add",
+        "type": "function",
+        "description": "Sets up a preference manager that we can manage later",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "settingName"
+          }
+        ],
+        "async": true
+      }
+    ]
+  }
+]

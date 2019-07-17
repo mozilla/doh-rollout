@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "name": "DoH Roll-Out",
+  "description": "Mozilla addon that supports the roll-out of DoH",
+  "version": "0.0.1",
+
+  "hidden": true,
+
+  "applications": {
+    "gecko": {
+      "id": "doh-rollout@mozilla.org"
+    }
+  },
+
+  "permissions": [
+    "storage",
+    "notifications"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "experiment_apis": {
+    "study": {
+      "schema": "experiments/study/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/study/api.js",
+        "paths": [["study"]]
+      }
+    },
+    "settings": {
+      "schema": "experiments/settings/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/settings/api.js",
+        "paths": [["experiments", "settings"]]
+      }
+    },
+    "notifications": {
+      "schema": "experiments/notifications/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/notifications/api.js",
+        "paths": [["experiments", "notifications"]]
+      }
+    }
+  }
+}

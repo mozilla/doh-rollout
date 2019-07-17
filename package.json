@@ -1,0 +1,29 @@
+{
+  "name": "doh-rollout",
+  "version": "0.0.1",
+  "description": "DoH Roll-Out",
+  "main": ".eslintrc.js",
+  "scripts": {
+    "build": "mkdir src/lib/; npm run ext-build && npm run setup-shield",
+    "setup-shield": "./node_modules/.bin/copyStudyUtils src/experiments",
+    "ext-build": "cd src && web-ext build --overwrite-dest;",
+    "lint": "eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahounsel/doh-rollout.git"
+  },
+  "author": "Austin Hounsel",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/ahounsel/doh-rollout/issues"
+  },
+  "homepage": "https://github.com/ahounse/doh-rollout#readme",
+  "dependencies": {
+    "shield-studies-addon-utils": "^5.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  }
+}
