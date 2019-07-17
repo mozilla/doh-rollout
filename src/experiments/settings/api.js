@@ -86,9 +86,7 @@ const settingManager = {
     const prerequisitePrefs = [
       "network.trr.mode",
       "network.trr.disable-ECS",
-      "network.trr.uri",
-      "network.trr.experimentalPerfInterval",
-      "network.trr.experimentalPerfRepeatCount"
+      "network.trr.uri"
     ];
     const values = {};
     for (let pref of prerequisitePrefs) {
