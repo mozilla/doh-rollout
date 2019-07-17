@@ -94,18 +94,6 @@ const stateManager = {
   }
 };
 
-async function hasFacebookCookie() {
-  let checkURL = "https://facebook.com";
-  let stores = await browser.cookies.getAllCookieStores();
-  for (let store of stores) {
-    if (await browser.cookies.get({name: "xs", url: checkURL, storeId: store.id}) ||
-        await browser.cookies.get({name: "c_user", url: checkURL, storeId: store.id})) {
-      return true;
-    }
-  }
-  return false;
-}
-
 const rollout = {
   async init() {
     browser.browserAction.onClicked.addListener(() => {
@@ -210,17 +198,6 @@ const rollout = {
         repeatCount > 0) {
       stateManager.endStudy("ineligible");
     }
-
-    let { lastChecked = 0, sentCount = 0 } = await browser.storage.local.get(["lastChecked", "sentCount"]); 
-    let time = Date.now();
-    if (lastChecked + interval < time) {
-      await browser.storage.local.set({ lastChecked: time, sentCount: ++sentCount });
-      // Perform perf checks
-      let hasFb = await hasFacebookCookie();
-      let results = await browser.experiments.perf.measure(repeatCount, hasFb);
-      // Send the report to shield
-      browser.study.sendTelemetry({ event: "perf-report", results: JSON.stringify(results), sentCount: String(sentCount) });
-    }
   },
 
   setupAlarm() {
@@ -250,14 +227,14 @@ const rollout = {
     browser.experiments.notifications.create("rollout-prompt", {
       type: "prompt",
       title: "",
-      message: browser.i18n.getMessage("notificationMessage"),
+      message: "notificationMessage",
       buttons: [
-        {title: browser.i18n.getMessage("disableButtonText")},
-        {title: browser.i18n.getMessage("acceptButtonText")}
+        {title: "disableButtonText"},
+        {title: "acceptButtonText"}
       ],
       moreInfo: {
         url: STUDY_URL,
-        title: browser.i18n.getMessage("learnMoreLinkText")
+        title: "learnMoreLinkText"
       }
     });
     // Set enabled state last in-case the code above fails.
