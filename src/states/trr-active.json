@@ -18,11 +18,11 @@
       "id": 1,
       "_comment": "User has been presented with disclosure message",
       "prefs": {
+      },
+      "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
         "network.trr.mode": 2,
         "network.trr.disable-ECS": true
-      },
-      "persistPrefs": {
       }
     },
     "UIDisabled": {
@@ -56,11 +56,11 @@
       "id": -4,
       "_comment": "User saw disclosure and clicked OK",
       "prefs": {
+      },
+      "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
         "network.trr.mode": 2,
         "network.trr.disable-ECS": true
-      },
-      "persistPrefs": {
       }
     }
   }
