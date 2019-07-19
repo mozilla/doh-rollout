@@ -4,7 +4,7 @@
     "network.trr.uri": "string",
     "network.trr.disable-ECS": "bool"
   },
-  "statePref": "network.trr.experimentalRollout",
+  "statePref": "network.trr.rollout",
   "states": {
     "loaded": {
       "id": 0,
@@ -40,6 +40,7 @@
       "prefs": {
       },
       "persistPrefs": {
+        "network.trr.mode": 5
       }
     },
     "disabled": {
@@ -48,6 +49,7 @@
       "prefs": {
       },
       "persistPrefs": {
+        "network.trr.mode": 5
       }
     },
     "UIOk": {
