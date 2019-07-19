@@ -110,7 +110,8 @@ const rollout = {
       this.onReady();
     });
     await browser.study.setup(baseStudySetup);
-    browser.runtime.onMessage.addListener((...args) => this.handleMessage(...args));
+    browser.runtime.onMessage.addListener((...args) => 
+      this.handleMessage(...args));
   },
   async showTab() {
     const tabs = await this.findStudyTabs();
@@ -126,20 +127,24 @@ const rollout = {
   },
   async onReady() {
     const studyInfo = await browser.study.getStudyInfo();
-    if (!studyInfo.isFirstRun) {
-      this.setupAlarm();
-      return;
-    }
+    // if (!studyInfo.isFirstRun) {
+    //   console.log("Not first run; study loaded");
+    //   return;
+    // }
+
     // If the user hasn't met the criteria clean up
-    if (await browser.experiments.settings.hasModifiedPrerequisites()) {
-      stateManager.endStudy("ineligible");
-    }
+    //if (await browser.experiments.settings.hasModifiedPrerequisites()) {
+    //  stateManager.endStudy("ineligible");
+    //}
+
     const variation = studyInfo.variation.name;
     if (variation === "control") {
       // Return early as we don't have a control.json file
       return;
     }
+    // Set the DoH preferences.
     await stateManager.setSetting(variation);
+
     const stateName = await stateManager.getState();
     switch (stateName) {
     case "enabled":
@@ -151,7 +156,8 @@ const rollout = {
       await stateManager.setState("loaded");
       await this.show();
       break;
-      // If the user has a thrown error show the banner again (shouldn't happen)
+      // If the user has a thrown error show the banner again 
+      // (shouldn't happen)
     case "loaded":
       await this.show();
       break;
@@ -187,36 +193,9 @@ const rollout = {
     stateManager.endStudy("UIDisabled");
   },
 
-  async alarm(alarmInfo) {
-    // Let's verify that we have the expected settings as we want for
-    // this performance study.
-    let prereq = await browser.experiments.settings.prerequisites();
-    let interval = prereq["network.trr.experimentalPerfInterval"];
-    let repeatCount = prereq["network.trr.experimentalPerfRepeatCount"];
-    // Sanity check that our interval pref is never smaller than 1 minute
-    let minInterval = 60 * 1000;
-    if (prereq["network.trr.mode"] !== 2 &&
-        prereq["network.trr.uri"] !== "https://mozilla.cloudflare-dns.com/dns-query" &&
-        interval > minInterval &&
-        repeatCount > 0) {
-      stateManager.endStudy("ineligible");
-    }
-  },
-
-  setupAlarm() {
-    let periodInMinutes = 1;
-    browser.alarms.onAlarm.addListener((alarmInfo) => {
-      this.alarm(alarmInfo);
-    });
-    browser.alarms.create("check-should-trigger", {
-      periodInMinutes,
-    });
-  },
-
   async show() {
-    this.setupAlarm();
-
-    // This doesn't handle the 'x' clicking on the notification mostly because it's not clear what the user intended here.
+    // This doesn't handle the 'x' clicking on the notification 
+    // mostly because it's not clear what the user intended here.
     browser.experiments.notifications.onButtonClicked.addListener((options) => {
       switch (Number(options.buttonIndex)) {
       case 1:
