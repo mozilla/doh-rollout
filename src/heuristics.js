@@ -84,11 +84,11 @@ async function comcastDomains() {
   const canaryList = [
     {
       type: "malware",
-      check: ["testprotectedbrowsing.xfinity.com"] 
+      check: ["test.xfiprotectedbrowsing.com"]
     },
     {
       type: "parental",
-      check: ["testparentalcontrols.xfinity.com"]
+      check: ["test.xfiparentalcontrols.com"]
     }
   ];
 
