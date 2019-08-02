@@ -111,29 +111,12 @@ async function comcastDomains() {
 }
 
 
-async function exampleAdultSite() {
-  const blocklistDomains = ["exampleadultsite.com"];
-
-  let answers = await dnsListLookup(blocklistDomains);
-  for (let i = 0; i < answers.length; i++) {
-    // If exampleadultsite.com doesn't resolve to 146.112.255.155, 
-    // then we infer that content filters are on
-    let answer = answers[i];
-    if (answer && answer !== "146.112.255.155") {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let blocksExampleAdultSite = await exampleAdultSite();
   let safeSearchChecks = await safeSearch();
   let results = {"usesComcastMalwareFilter": comcastChecks.malware,
                  "usesComcastParentalFilter": comcastChecks.parental,
-                 "blocksExampleAdultSite": blocksExampleAdultSite,
                  "usesGoogleSafeSearch": safeSearchChecks.google,
                  "usesYouTubeSafeSearch": safeSearchChecks.youtube};
   // TODO: Send Telemetry.
@@ -142,7 +125,6 @@ async function checkContentFilters() {
   
   if (results.usesComcastMalwareFilter ||
       results.usesComcastParentalFilter ||
-      results.blocksExampleAdultSite ||
       results.usesGoogleSafeSearch ||
       results.usesYouTubeSafeSearch) {
     return true;
