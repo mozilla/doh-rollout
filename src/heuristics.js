@@ -2,15 +2,6 @@
 /* global browser, tldjs */
 
 
-const NetworkObserver = {
-  resolvesCanaryDomains: false,
-  usesSafeSearch: false,
-  notInPSL: new Set(),
-  pslResolvesLocal: new Set(),
-  uniqueDomains: new Set(),
-};
-
-
 // TODO: Randomize order of lookups
 async function dnsListLookup(domainList) {
   let results = [];
@@ -140,12 +131,6 @@ async function checkContentFilters() {
   let _comcastChecks = await resolvesComcastDomains();
   let _blocksExampleAdultSite = await blocksExampleAdultSite();
   let _safeSearchChecks = await usesSafeSearch();
-  let contentFilterData= {"usesComcastMalwareFilter": _comcastChecks.malware,
-                          "usesComcastParentalFilter": _comcastChecks.parental,
-                          "blocksExampleAdultSite": _blocksExampleAdultSite,
-                          "usesGoogleSafeSearch": _safeSearchChecks.google,
-                          "usesYouTubeSafeSearch": _safeSearchChecks.youtube};
-  await browser.storage.local.set({"contentFilterData": contentFilterData});
 }
 
 
@@ -199,19 +184,13 @@ async function checkSplitHorizon(responseDetails) {
   // Check if the domain suffix is not in the PSL 
   let tldExists = tldjs.tldExists(hostname);
   if (!tldExists) {
-    NetworkObserver.notInPSL.add(hostname);
+    // TODO: Send Telemetry for notInPSL
   }
 
   // Check if the domain suffix is in the PSL 
   // but the domain name resolves to an RFC 1918 address
   let isRFC1918 = checkRFC1918(ip);
   if (tldExists && isRFC1918) {
-    NetworkObserver.pslResolvesLocal.add(hostname);
+    // TODO: Send Telemetry for pslResolvesLocal
   }
-  
-  NetworkObserver.uniqueDomains.add(hostname);
-  let splitHorizonData = {"notInPSL": NetworkObserver.notInPSL,
-                          "pslResolvesLocal": NetworkObserver.pslResolvesLocal,
-                          "uniqueDomains": NetworkObserver.uniqueDomains};
-  await browser.storage.local.set({"splitHorizonData": splitHorizonData}); 
 }
