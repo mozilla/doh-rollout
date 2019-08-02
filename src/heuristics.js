@@ -24,7 +24,7 @@ async function dnsListLookup(domainList) {
 }
 
 
-async function usesSafeSearch() {
+async function safeSearch() {
   const providerList = [
     {
       name: "google",
@@ -80,7 +80,7 @@ async function usesSafeSearch() {
 }
 
 
-async function resolvesComcastDomains() {
+async function comcastDomains() {
   const canaryList = [
     {
       type: "malware",
@@ -111,7 +111,7 @@ async function resolvesComcastDomains() {
 }
 
 
-async function blocksExampleAdultSite() {
+async function exampleAdultSite() {
   const blocklistDomains = ["exampleadultsite.com"];
 
   let answers = await dnsListLookup(blocklistDomains);
@@ -128,36 +128,29 @@ async function blocksExampleAdultSite() {
 
 
 async function checkContentFilters() {
-  let _comcastChecks = await resolvesComcastDomains();
-  let _blocksExampleAdultSite = await blocksExampleAdultSite();
-  let _safeSearchChecks = await usesSafeSearch();
-}
-
-
-// Private address space for IPv4
-// TODO: Add function to parse local addresses for IPv6 (RFC 4193)
-function checkRFC1918(ip) {
-  if (!ip) {
-    return false;
-  }
-
-  // Parse the highest order octets of the address
-  let octets = ip.split(".");
-  let firstOctet = parseInt(octets[0], 10);
-  let secondOctet = parseInt(octets[1], 10); 
-    
-  if (firstOctet === 10) {
-    return true;
-  } else if (firstOctet === 192 && secondOctet === 168) {
-    return true;
-  } else if (firstOctet === 172 && secondOctet >= 16  && secondOctet <= 31) {
+  let comcastChecks = await comcastDomains();
+  let blocksExampleAdultSite = await exampleAdultSite();
+  let safeSearchChecks = await safeSearch();
+  let results = {"usesComcastMalwareFilter": comcastChecks.malware,
+                 "usesComcastParentalFilter": comcastChecks.parental,
+                 "blocksExampleAdultSite": blocksExampleAdultSite,
+                 "usesGoogleSafeSearch": safeSearchChecks.google,
+                 "usesYouTubeSafeSearch": safeSearchChecks.youtube};
+  // TODO: Send Telemetry.
+  // Do we want to send Telemetry regardless if parental controls
+  // are enabled?
+  
+  if (results.usesComcastMalwareFilter ||
+      results.usesComcastParentalFilter ||
+      results.blocksExampleAdultSite ||
+      results.usesGoogleSafeSearch ||
+      results.usesYouTubeSafeSearch) {
     return true;
   }
   return false;
 }
 
 
-// TODO: Detect HTTPS upgrades
 async function checkSplitHorizon(responseDetails) {
   let url = responseDetails.url;
   let ip = responseDetails.ip;
@@ -167,7 +160,7 @@ async function checkSplitHorizon(responseDetails) {
 
   // Ignore anything from localhost
   if (hostname === "localhost") {
-    return;
+    return false;
   }
 
   // If we didn't get IP/hostname fields from the response object, then either:
@@ -178,19 +171,13 @@ async function checkSplitHorizon(responseDetails) {
     if (!fromCache && !redirectUrl) {
       console.error("Unknown reason for empty IP/Hostname fields", url);
     }
-    return;
+    return false;
   }
 
-  // Check if the domain suffix is not in the PSL 
-  let tldExists = tldjs.tldExists(hostname);
-  if (!tldExists) {
-    // TODO: Send Telemetry for notInPSL
+  let notInPSL = tldjs.tldExists(hostname);
+  let results = {"notInPSL": notInPSL};
+  if (results.notInPSL) {
+    return true;
   }
-
-  // Check if the domain suffix is in the PSL 
-  // but the domain name resolves to an RFC 1918 address
-  let isRFC1918 = checkRFC1918(ip);
-  if (tldExists && isRFC1918) {
-    // TODO: Send Telemetry for pslResolvesLocal
-  }
+  return false;
 }
