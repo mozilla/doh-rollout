@@ -1,0 +1,16 @@
+[
+  {
+    "namespace": "experiments.heuristics",
+    "description": "Heuristics for disabling DNS-over-HTTPS (DoH)",
+    "functions": [
+      {
+        "name": "checkEnterprisePolicies",
+        "type": "function",
+        "description": "Checks for enterprise policies",
+        "parameters": [
+        ],
+        "async": true
+      }
+    ]
+  }
+]

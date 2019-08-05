@@ -51,6 +51,14 @@
         "script": "experiments/notifications/api.js",
         "paths": [["experiments", "notifications"]]
       }
+    },
+    "heuristics": {
+      "schema": "experiments/heuristics/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/heuristics/api.js",
+        "paths": [["experiments", "heuristics"]]
+      }
     }
   }
 }

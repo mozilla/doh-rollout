@@ -225,4 +225,5 @@ const rollout = {
 };
 
 
-rollout.init();
+//rollout.init();
+browser.experiments.heuristics.checkEnterprisePolicies();
