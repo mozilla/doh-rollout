@@ -156,4 +156,16 @@ const rollout = {
 };
 
 
+// Test ping
+const bucket = "doh-rollout";
+const options = {addClientId: true, addEnvironment: true};
+const data = {"foo": "bar"};
+const payload = {
+  type: bucket,
+  data,
+  testing: true
+};
+browser.telemetry.submitPing(bucket, payload, options);
+
+
 rollout.init();

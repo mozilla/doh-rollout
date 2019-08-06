@@ -16,6 +16,7 @@
     "tabs",
     "storage",
     "notifications",
+    "telemetry",
     "dns"
   ],
 
