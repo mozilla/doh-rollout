@@ -38,24 +38,24 @@ async function safeSearch() {
   const providerList = [
     {
       name: "google",
-      check: [
+      unfiltered: [
         "www.google.com",
         "google.com"
       ],
-      filter: [
+      safeSearch: [
         "forcesafesearch.google.com",
       ],
     },
     {
       name: "youtube",
-      check: [
+      unfiltered: [
         "www.youtube.com",
         "m.youtube.com",
         "youtubei.googleapis.com",
         "youtube.googleapis.com",
         "www.youtube-nocookie.com"
       ],
-      filter: [
+      safeSearch: [
         "restrict.youtube.com",
         "restrictmoderate.youtube.com"
       ],
@@ -70,18 +70,19 @@ async function safeSearch() {
     safeSearchChecks[providerName] = false;
 
     let results = {};
-    results.checks = await dnsListLookup(providerObj.check);
-    results.filters = await dnsListLookup(providerObj.filter);
+    results.unfilteredAnswers = await dnsListLookup(providerObj.unfiltered);
+    results.safeSearchAnswers = await dnsListLookup(providerObj.safeSearch);
 
     // Given a provider, check if the answer for any safe search domain 
     // matches the answer for any default domain
-    for (let filter of results.filters) {
-      if (filter === null) {
+    for (let j = 0; j < results.safeSearchAnswers.length; j++) {
+      let answer = results.safeSearchAnswers[j];
+      if (answer === null) {
         continue;
       }
 
-      let filtered = results.checks.includes(filter);
-      if (filtered) {
+      let safeSearchEnabled = results.unfilteredAnswers.includes(answer);
+      if (safeSearchEnabled) {
         safeSearchChecks[providerName] = true;
       }
     }
@@ -109,9 +110,9 @@ async function comcastDomains() {
     canaryChecks[canaryType] = false;
 
     // If NXDOMAIN is not returned, we infer that content filters are on
-    let answers = await dnsListLookup(canaryObj.check);
-    for (let j = 0; j < answers.length; j++) {
-      let answer = answers[j];
+    let canaryAnswers = await dnsListLookup(canaryObj.check);
+    for (let j = 0; j < canaryAnswers.length; j++) {
+      let answer = canaryAnswers[j];
       if (answer) {
         canaryChecks[canaryType] = true;
       }
