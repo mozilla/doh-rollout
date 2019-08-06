@@ -122,7 +122,6 @@ async function comcastDomains() {
 
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
-  let blocksExampleAdultSite = await exampleAdultSite();
   let safeSearchChecks = await safeSearch();
   let results = {"usesComcastMalwareFilter": comcastChecks.malware,
                  "usesComcastParentalFilter": comcastChecks.parental,
