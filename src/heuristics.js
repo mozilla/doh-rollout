@@ -2,15 +2,24 @@
 /* global browser, tldjs */
 
 
+const GLOBAL_CANARY = "use-application-dns.net";
+
+
+async function dnsLookup(hostname) {
+  let flags = ["disable_trr", "disable_ipv6", "bypass_cache"];
+  let response = await browser.dns.resolve(hostname, flags);
+  return response.addresses;
+}
+
+
 // TODO: Randomize order of lookups
 async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
     try {
-      let flags = ["disable_trr", "disable_ipv6", "bypass_cache"];
-      let response = await browser.dns.resolve(domain, flags);
-      results = results.concat(response.addresses);
+      let addresses = dnsLookup(domain);
+      results.concat(addresses);
     } catch (e) {
       // Handle NXDOMAIN
       if (e.message === "NS_ERROR_UNKNOWN_HOST") {
@@ -160,6 +169,19 @@ async function checkSplitHorizon(responseDetails) {
   let results = {"notInPSL": notInPSL};
   if (results.notInPSL) {
     return true;
+  }
+  return false;
+}
+
+
+// TODO: Confirm the expected address when filtering is on
+async function checkGlobalCanary() {
+  let addresses = await dnsLookup(GLOBAL_CANARY);
+  for (let i = 0; i < addresses.length; i++) {
+    let addr = addresses[i];
+    if (addr === "192.0.0.8") {
+      return true;
+    }
   }
   return false;
 }

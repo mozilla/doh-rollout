@@ -226,4 +226,8 @@ const rollout = {
 
 
 //rollout.init();
-browser.experiments.heuristics.checkEnterprisePolicies();
+async function test() {
+  let result = await checkGlobalCanary();
+  console.log("Canary domain filtered?:", result);
+}
+test();
