@@ -7,8 +7,18 @@ const GLOBAL_CANARY = "use-application-dns.net";
 
 async function dnsLookup(hostname) {
   let flags = ["disable_trr", "disable_ipv6", "bypass_cache"];
-  let response = await browser.dns.resolve(hostname, flags);
-  return response.addresses;
+  let addresses;
+
+  try {
+    let response = await browser.dns.resolve(hostname, flags);
+    addresses = response.addresses;
+  } catch (e) {
+    if (e.message !== "NS_ERROR_UNKNOWN_HOST") {
+      console.error("DNS lookup for heuristics failed for unknown reason");
+    }
+    addresses = null;
+  }
+  return addresses;
 }
 
 
@@ -17,17 +27,8 @@ async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    try {
-      let addresses = dnsLookup(domain);
-      results.concat(addresses);
-    } catch (e) {
-      // Handle NXDOMAIN
-      if (e.message === "NS_ERROR_UNKNOWN_HOST") {
-        results = results.concat(null);
-      } else {
-        throw e;
-      }
-    }
+    let addresses = await dnsLookup(domain);
+    results = results.concat(addresses);
   }
   return results;
 }
