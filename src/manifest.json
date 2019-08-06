@@ -29,14 +29,6 @@
   },
 
   "experiment_apis": {
-    "study": {
-      "schema": "experiments/study/schema.json",
-      "parent": {
-        "scopes": ["addon_parent"],
-        "script": "experiments/study/api.js",
-        "paths": [["study"]]
-      }
-    },
     "settings": {
       "schema": "experiments/settings/schema.json",
       "parent": {

@@ -3,50 +3,6 @@
 
 
 const STUDY_URL = browser.extension.getURL("study.html");
-const SETTING_NAME = "trr";
-const baseStudySetup = {
-  activeExperimentName: browser.runtime.id,
-  studyType: "shield",
-  // telemetry
-  telemetry: {
-    // default false. Actually send pings.
-    send: true,
-    // Marks pings with testing=true.  Set flag to `true` before final release
-    removeTestingFlag: false,
-  },
-  endings: {
-    // standard endings
-    "user-disable": {
-      baseUrls: [],
-      category: "ended-negative",
-    },
-    ineligible: {
-      baseUrls: [],
-      category: "ended-neutral",
-    },
-    expired: {
-      baseUrls: [],
-      category: "ended-positive",
-    },
-
-    // custom endings
-    UIDisabled: {
-      baseUrls: [],
-      category: "ended-negative",
-    },
-  },
-  weightedVariations: [
-    {
-      name: "trr-active",
-      weight: 1
-    },
-  ],
-  // maximum time that the study should run, from the first run
-  expire: {
-    days: 7,
-  },
-  allowEnroll: true,
-};
 
 
 const stateManager = {
@@ -73,7 +29,6 @@ const stateManager = {
   },
 
   async setState(stateKey) {
-    browser.study.sendTelemetry({stateKey});
     browser.experiments.settings.set(this.settingName, stateKey);
   },
 
@@ -83,11 +38,6 @@ const stateManager = {
   async setSetting(settingName) {
     stateManager.settingName = settingName;
     return browser.experiments.settings.add(this.settingName);
-  },
-
-  endStudy(stateKey) {
-    browser.study.sendTelemetry({stateKey, disabling: "yes"});
-    browser.study.endStudy(stateKey || "generic");
   },
 
   // Clear out settings
@@ -102,16 +52,9 @@ const rollout = {
     browser.browserAction.onClicked.addListener(() => {
       this.showTab();
     });
-    browser.study.onEndStudy.addListener((ending) => {
-      //TODO make sure we handle all endings here
-      stateManager.clear(ending);
-    });
-    browser.study.onReady.addListener(() => {
-      this.onReady();
-    });
-    await browser.study.setup(baseStudySetup);
     browser.runtime.onMessage.addListener((...args) => 
       this.handleMessage(...args));
+    await this.onReady();
   },
   async showTab() {
     const tabs = await this.findStudyTabs();
@@ -126,24 +69,13 @@ const rollout = {
     }
   },
   async onReady() {
-    const studyInfo = await browser.study.getStudyInfo();
-    // if (!studyInfo.isFirstRun) {
-    //   console.log("Not first run; study loaded");
-    //   return;
-    // }
-
     // If the user hasn't met the criteria clean up
     //if (await browser.experiments.settings.hasModifiedPrerequisites()) {
     //  stateManager.endStudy("ineligible");
     //}
 
-    const variation = studyInfo.variation.name;
-    if (variation === "control") {
-      // Return early as we don't have a control.json file
-      return;
-    }
     // Set the DoH preferences.
-    await stateManager.setSetting(variation);
+    await stateManager.setSetting("trr-active");
 
     const stateName = await stateManager.getState();
     switch (stateName) {
@@ -190,7 +122,6 @@ const rollout = {
     const tabs = await this.findStudyTabs();
     browser.tabs.remove(tabs.map((tab) => tab.id));
     browser.experiments.notifications.clear("rollout-prompt");
-    stateManager.endStudy("UIDisabled");
   },
 
   async show() {
@@ -225,9 +156,4 @@ const rollout = {
 };
 
 
-//rollout.init();
-async function test() {
-  let result = await checkGlobalCanary();
-  console.log("Canary domain filtered?:", result);
-}
-test();
+rollout.init();
