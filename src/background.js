@@ -1,5 +1,5 @@
 "use strict";
-/* global browser */
+/* global browser, checkContentFilters, checkGlobalCanary */
 
 
 const STUDY_URL = browser.extension.getURL("study.html");
@@ -43,11 +43,49 @@ const stateManager = {
   // Clear out settings
   async clear(stateKey = null) {
     browser.experiments.settings.clear(stateKey);
-  }
+  },
 };
 
 
 const rollout = {
+  async sendHeuristicsPing(results, disablingDoh) {
+    // Test ping
+    const bucket = "doh-rollout";
+    const options = {addClientId: true, addEnvironment: true};
+    const payload = {
+      type: bucket,
+      data: results,
+      disabling: disablingDoh,
+      testing: true
+    };
+    browser.telemetry.submitPing(bucket, payload, options);
+  },
+
+  async disableDoh() {
+  },
+
+  async runStartupHeuristics() {
+    const contentFilters = await checkContentFilters(); 
+    const globalCanary = await checkGlobalCanary();
+    const policies = await browser.experiments.heuristics.checkEnterprisePolicies();
+    const results = {
+      "contentFilters": contentFilters,
+      "globalCanary": globalCanary,
+      "policies": policies
+    };
+
+    let disablingDoh = contentFilters.enabled ||
+                       globalCanary.enabled   ||
+                       policies.enabled;
+    if (disablingDoh) {
+      console.log("Disabling DoH");
+      await this.disableDoh();
+    } else {
+      console.log("Not disabling DoH");
+    }
+    await this.sendHeuristicsPing(results, disablingDoh);
+  },
+
   async init() {
     browser.browserAction.onClicked.addListener(() => {
       this.showTab();
@@ -56,6 +94,7 @@ const rollout = {
       this.handleMessage(...args));
     await this.onReady();
   },
+
   async showTab() {
     const tabs = await this.findStudyTabs();
     if (tabs.length) {
@@ -68,31 +107,41 @@ const rollout = {
       });
     }
   },
+
   async onReady() {
-    // If the user hasn't met the criteria clean up
-    //if (await browser.experiments.settings.hasModifiedPrerequisites()) {
-    //  stateManager.endStudy("ineligible");
-    //}
+    // If the user has explicitly disabled DoH, don't continue
+    //  if (await browser.experiments.settings.hasModifiedPrerequisites()) {
+    //    return;
+    //  }
 
-    // Set the DoH preferences.
-    await stateManager.setSetting("trr-active");
+    // Check for parental controls, enterprise policies, and the global canary 
+    // domain when the browser starts
+    await this.runStartupHeuristics(); 
 
-    const stateName = await stateManager.getState();
-    switch (stateName) {
-    case "enabled":
-    case "disabled":
-    case "UIDisabled":
-    case "UIOk":
-    case "uninstalled":
-    case null:
-      await stateManager.setState("loaded");
-      await this.show();
-      break;
-      // If the user has a thrown error show the banner again 
-      // (shouldn't happen)
-    case "loaded":
-      await this.show();
-      break;
+    // We should only show the notification when DoH is enabled for
+    // the first time
+    let firstTime = false;
+    if (firstTime) {
+      // Set the DoH preferences.
+      await stateManager.setSetting("trr-active");
+
+      const stateName = await stateManager.getState();
+      switch (stateName) {
+      case "enabled":
+      case "disabled":
+      case "UIDisabled":
+      case "UIOk":
+      case "uninstalled":
+      case null:
+        await stateManager.setState("loaded");
+        await this.show();
+        break;
+        // If the user has a thrown error show the banner again 
+        // (shouldn't happen)
+      case "loaded":
+        await this.show();
+        break;
+      }
     }
   },
 
@@ -154,18 +203,6 @@ const rollout = {
     await stateManager.setState("enabled");
   }
 };
-
-
-// Test ping
-const bucket = "doh-rollout";
-const options = {addClientId: true, addEnvironment: true};
-const data = {"foo": "bar"};
-const payload = {
-  type: bucket,
-  data,
-  testing: true
-};
-browser.telemetry.submitPing(bucket, payload, options);
 
 
 rollout.init();

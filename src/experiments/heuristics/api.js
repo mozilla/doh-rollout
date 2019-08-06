@@ -24,7 +24,7 @@ var heuristics = class heuristics extends ExtensionAPI {
         heuristics: {
           async checkEnterprisePolicies() {
             let result = await heuristicsManager.checkEnterprisePolicies();
-            console.log("Enterprise policies:", result);
+            return result;
           },
         },
       },
