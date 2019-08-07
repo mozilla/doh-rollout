@@ -62,26 +62,26 @@ const rollout = {
   },
 
   async disableDoh() {
+    await stateManager.setState("disabled");  
+  },
+
+  async enableDoh() {
+    await stateManager.setState("enabled"); 
   },
 
   async runStartupHeuristics() {
-    const contentFilters = await checkContentFilters(); 
-    const globalCanary = await checkGlobalCanary();
-    const policies = await browser.experiments.heuristics.checkEnterprisePolicies();
-    const results = {
-      "contentFilters": contentFilters,
-      "globalCanary": globalCanary,
-      "policies": policies
-    };
+    let contentFilterChecks = await checkContentFilters(); 
+    let canaryCheck = {"globalCanary": await checkGlobalCanary()};
+    let policiesCheck = {"enterprisePolicies": await browser.experiments.heuristics.checkEnterprisePolicies()};
+    let results = Object.assign(contentFilterChecks, canaryCheck, policiesCheck);
 
-    let disablingDoh = contentFilters.enabled ||
-                       globalCanary.enabled   ||
-                       policies.enabled;
+    let disablingDoh = Object.values(results).some(item => item === true);
     if (disablingDoh) {
       console.log("Disabling DoH");
       await this.disableDoh();
     } else {
-      console.log("Not disabling DoH");
+      console.log("Enabling DoH");
+      await this.enableDoh();
     }
     await this.sendHeuristicsPing(results, disablingDoh);
   },
@@ -116,6 +116,7 @@ const rollout = {
 
     // Check for parental controls, enterprise policies, and the global canary 
     // domain when the browser starts
+    await stateManager.setSetting("trr-active");
     await this.runStartupHeuristics(); 
 
     // We should only show the notification when DoH is enabled for

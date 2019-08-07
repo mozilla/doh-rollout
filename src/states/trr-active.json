@@ -31,7 +31,9 @@
       "prefs": {
       },
       "persistPrefs": {
-        "network.trr.mode": 5
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 5,
+        "network.trr.disable-ECS": true
       }
     },
     "uninstalled": {
@@ -40,7 +42,9 @@
       "prefs": {
       },
       "persistPrefs": {
-        "network.trr.mode": 5
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 5,
+        "network.trr.disable-ECS": true
       }
     },
     "disabled": {
@@ -49,7 +53,9 @@
       "prefs": {
       },
       "persistPrefs": {
-        "network.trr.mode": 5
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 5,
+        "network.trr.disable-ECS": true
       }
     },
     "UIOk": {
