@@ -125,25 +125,15 @@ async function comcastDomains() {
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let safeSearchChecks = await safeSearch();
-  let results = {"usesComcastMalwareFilter": comcastChecks.malware,
+  let contentFilterChecks = {"usesComcastMalwareFilter": comcastChecks.malware,
                  "usesComcastParentalFilter": comcastChecks.parental,
                  "usesGoogleSafeSearch": safeSearchChecks.google,
                  "usesYouTubeSafeSearch": safeSearchChecks.youtube};
-  // TODO: Send Telemetry.
-  // Do we want to send Telemetry regardless if parental controls
-  // are enabled?
-  
-  if (results.usesComcastMalwareFilter ||
-      results.usesComcastParentalFilter ||
-      results.usesGoogleSafeSearch ||
-      results.usesYouTubeSafeSearch) {
-    return true;
-  }
-  return false;
+  return contentFilterChecks;
 }
 
 
-async function checkSplitHorizon(responseDetails) {
+async function checkTLDExists(responseDetails) {
   let url = responseDetails.url;
   let ip = responseDetails.ip;
   let hostname = new URL(url).hostname;
@@ -166,12 +156,7 @@ async function checkSplitHorizon(responseDetails) {
     return false;
   }
 
-  let notInPSL = tldjs.tldExists(hostname);
-  let results = {"notInPSL": notInPSL};
-  if (results.notInPSL) {
-    return true;
-  }
-  return false;
+  return tldjs.tldExists(hostname);
 }
 
 
