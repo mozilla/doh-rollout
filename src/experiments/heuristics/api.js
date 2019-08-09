@@ -8,7 +8,11 @@ Cu2.import("resource://gre/modules/Services.jsm");
 const heuristicsManager = {
   async checkEnterprisePolicies() {
     if (Services.policies.status === Services.policies.ACTIVE) {
-      return true;
+      let policies = Services.policies.getActivePolicies();
+      if (!("DNSOverHTTPS" in policies)) {
+        // If DoH isn't in the policy, don't enable it
+        return true;
+      }
     }
     return false;
   }
