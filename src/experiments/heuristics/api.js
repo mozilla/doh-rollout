@@ -1,8 +1,8 @@
 "use strict";
 /* exported heuristics */
 /* global Components, ExtensionAPI, Services  */
-let Cu2 = Components.utils;
-Cu2.import("resource://gre/modules/Services.jsm");
+let Cu3 = Components.utils;
+Cu3.import("resource://gre/modules/Services.jsm");
 
 
 const heuristicsManager = {
@@ -10,10 +10,25 @@ const heuristicsManager = {
     if (Services.policies.status === Services.policies.ACTIVE) {
       let policies = Services.policies.getActivePolicies();
       if (!("DNSOverHTTPS" in policies)) {
-        // If DoH isn't in the policy, don't enable it
+        // If DoH isn't in the policy, disable it
+        console.log("DoH not in policy");
         return true;
+      } else {
+        let dohPolicy = policies.DNSOverHTTPS;
+        if (dohPolicy.Enabled === true) {
+          // If DoH is enabled in the policy, enable it
+          console.log("DoH enabled in policy");
+          return false;
+        } else {
+          // If DoH is disabled in the policy, disable it
+          console.log("DoH disabled in policy");
+          return true;
+        }
       }
     }
+
+    // Enable DoH by default
+    console.log("Policy doesn't exist");
     return false;
   }
 };
