@@ -17,8 +17,10 @@
     "storage",
     "notifications",
     "telemetry",
+    "webRequest",
     "dns",
-    "captivePortal"
+    "captivePortal",
+    "<all_urls>"
   ],
 
   "browser_action": {
@@ -27,7 +29,7 @@
   },
 
   "background": {
-    "scripts": ["heuristics.js", "background.js"]
+    "scripts": ["tld.min.js", "heuristics.js", "background.js"]
   },
 
   "experiment_apis": {

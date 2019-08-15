@@ -1,5 +1,5 @@
 "use strict";
-/* global browser, checkContentFilters, checkGlobalCanary */
+/* global browser, checkContentFilters, checkGlobalCanary, checkTLDExists */
 
 
 const STUDY_URL = browser.extension.getURL("study.html");
@@ -39,7 +39,7 @@ const stateManager = {
   },
 
   async setState(stateKey) {
-    browser.experiments.settings.set(this.settingName, stateKey);
+    await browser.experiments.settings.set(this.settingName, stateKey);
   },
 
   /* settingName impacts the active states file we will be getting:
@@ -87,17 +87,23 @@ const rollout = {
 
     let disablingDoh = Object.values(results).some(item => item === true);
     if (disablingDoh) {
-      console.log("Disabling DoH");
+      console.log("Heuristics failed; disabling DoH");
       await this.disableDoh();
     } else {
-      console.log("Enabling DoH");
+      console.log("Heuristics passed; enabling DoH");
       await this.enableDoh();
     }
     await this.sendHeuristicsPing(results, disablingDoh);
   },
 
-  async runSplitHorizonHeuristic() {
+  async runSplitDNSCheck(responseDetails) {
+    let tldExists = await checkTLDExists(responseDetails);
+    if (!(tldExists)) {
+      console.log("Split DNS detected; disabling DoH");
 
+      // TODO: Figure out why this.disableDoh() doesn't work
+      await stateManager.setState("disabled");
+    }
   },
 
   async init() {
@@ -131,6 +137,12 @@ const rollout = {
     if (currentlyOffline && goingOnline) {
       // Run startup heuristics to enable/disable DoH
       await this.runStartupHeuristics();
+
+      // Check for split horizon by listening for each 
+      // request and seeing if the URL doesn't have a public suffix
+      let filter = {urls: ["<all_urls>"], types: ["main_frame"]};
+      browser.webRequest.onBeforeRedirect.addListener(this.runSplitDNSCheck, filter);
+      browser.webRequest.onCompleted.addListener(this.runSplitDNSCheck, filter);
 
       // TODO: Show notification if:
       //  1) Heuristics don't disable DoH
