@@ -55,34 +55,26 @@ const stateManager = {
 
 
 const rollout = {
-  async sendHeuristicsPing(results, disablingDoh) {
-    // Test ping
-    const bucket = "doh-rollout";
-    const options = {addClientId: true, addEnvironment: true};
-    const payload = {
-      type: bucket,
-      data: results,
-      disabling: disablingDoh,
-      testing: true
-    };
-    browser.telemetry.submitPing(bucket, payload, options);
-  },
-
   async runStartupHeuristics() {
+    // Combine heuristic results
     let contentFilterChecks = await checkContentFilters(); 
-    let canaryCheck = {"globalCanary": await checkGlobalCanary()};
-    let policiesCheck = {"enterprisePolicies": await browser.experiments.heuristics.checkEnterprisePolicies()};
+    let canaryCheck = {canary: await checkGlobalCanary()};
+    let policiesCheck = {enterprise: await browser.experiments.heuristics.checkEnterprisePolicies()};
     let results = Object.assign(contentFilterChecks, canaryCheck, policiesCheck);
 
-    let disablingDoh = Object.values(results).some(item => item === true);
+    // Check if DoH should be disabled
+    let disablingDoh = Object.values(results).some(item => item === "disable_doh");
+    let decision;
     if (disablingDoh) {
+      decision = "disable_doh";
       console.log("Heuristics failed; disabling DoH");
       await stateManager.setState("disabled");
     } else {
+      decision = "enable_doh";
       console.log("Heuristics passed; enabling DoH");
       await stateManager.setState("enabled");
     }
-    await this.sendHeuristicsPing(results, disablingDoh);
+    await browser.experiments.heuristics.sendHeuristicsPing(decision, results);
   },
 
   async runSplitDNSCheck(responseDetails) {
@@ -94,11 +86,6 @@ const rollout = {
   },
 
   async init() {
-    browser.browserAction.onClicked.addListener(() => {
-      this.showTab();
-    });
-    browser.runtime.onMessage.addListener((...args) => 
-      this.handleMessage(...args));
     await this.main();
   },
 
@@ -127,7 +114,11 @@ const rollout = {
   },
 
   async main() {
+    // Enable the pref manager
     await stateManager.setSetting("trr-active");
+
+    // Register the events for sending pings
+    browser.experiments.heuristics.setupTelemetry();
 
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement

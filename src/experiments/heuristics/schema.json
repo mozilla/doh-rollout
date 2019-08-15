@@ -4,6 +4,56 @@
     "description": "Heuristics for disabling DNS-over-HTTPS (DoH)",
     "functions": [
       {
+        "name": "setupTelemetry",
+        "type": "function",
+        "description": "Sets up the Telemetry for the addon",
+        "parameters": [
+        ],
+        "async": false
+      },
+      {
+        "name": "sendHeuristicsPing",
+        "type": "function",
+        "description": "Sends a ping for the results of the heuristics",
+        "parameters": [
+          { 
+            "name": "decision",
+            "type": "string"
+          },
+          {
+            "name": "results",
+            "type": "object",
+            "properties": {
+              "canary": {
+                "description": "True if the global canary domain was filtered, false otherwise",
+                "type": "string"
+              },
+              "enterprise": {
+                "description": "True if enterprise policy blocks DoH, false otherwise",
+                "type": "string"
+              },
+              "malware": {
+                "description": "True if user enabled Comcast's malware filter, false othwerise",
+                "type": "string"
+              },
+              "parental": {
+                "description": "True if user enabled Comcast's parental controls, false otherwise",
+                "type": "string"
+              },
+              "google": {
+                "description": "True if user enabled Google safe-search, false otherwise",
+                "type": "string"
+              },
+              "youtube": {
+                "description": "True if user enabled YouTube safe-search, false otherwise",
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "async": false
+      },
+      {
         "name": "checkEnterprisePolicies",
         "type": "function",
         "description": "Checks for enterprise policies",

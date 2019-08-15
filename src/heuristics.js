@@ -67,7 +67,7 @@ async function safeSearch() {
   for (let i = 0; i < providerList.length; i++) {
     let providerObj = providerList[i];
     let providerName = providerObj.name;
-    safeSearchChecks[providerName] = false;
+    safeSearchChecks[providerName] = "enable_doh";
 
     let results = {};
     results.unfilteredAnswers = await dnsListLookup(providerObj.unfiltered);
@@ -83,7 +83,7 @@ async function safeSearch() {
 
       let safeSearchEnabled = results.unfilteredAnswers.includes(answer);
       if (safeSearchEnabled) {
-        safeSearchChecks[providerName] = true;
+        safeSearchChecks[providerName] = "disable_doh";
       }
     }
   }
@@ -107,14 +107,14 @@ async function comcastDomains() {
   for (let i = 0; i < canaryList.length; i++) {
     let canaryObj = canaryList[i];
     let canaryType = canaryObj.type;
-    canaryChecks[canaryType] = false;
+    canaryChecks[canaryType] = "enable_doh";
 
     // If NXDOMAIN is not returned, we infer that content filters are on
     let canaryAnswers = await dnsListLookup(canaryObj.check);
     for (let j = 0; j < canaryAnswers.length; j++) {
       let answer = canaryAnswers[j];
       if (answer) {
-        canaryChecks[canaryType] = true;
+        canaryChecks[canaryType] = "disable_doh";
       }
     }
   }
@@ -125,10 +125,10 @@ async function comcastDomains() {
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let safeSearchChecks = await safeSearch();
-  let contentFilterChecks = {"usesComcastMalwareFilter": comcastChecks.malware,
-                 "usesComcastParentalFilter": comcastChecks.parental,
-                 "usesGoogleSafeSearch": safeSearchChecks.google,
-                 "usesYouTubeSafeSearch": safeSearchChecks.youtube};
+  let contentFilterChecks = {malware: comcastChecks.malware,
+                 parental: comcastChecks.parental,
+                 google: safeSearchChecks.google,
+                 youtube: safeSearchChecks.youtube};
   return contentFilterChecks;
 }
 
@@ -142,7 +142,7 @@ async function checkTLDExists(responseDetails) {
 
   // Ignore anything from localhost
   if (hostname === "localhost") {
-    return false;
+    return "enable_doh";
   }
 
   // If we didn't get IP/hostname fields from the response object, then either:
@@ -153,10 +153,14 @@ async function checkTLDExists(responseDetails) {
     if (!fromCache && !redirectUrl) {
       console.error("Unknown reason for empty IP/Hostname fields", url);
     }
-    return false;
+    return "enable_doh";
   }
 
-  return tldjs.tldExists(hostname);
+  let tldExists = tldjs.tldExists(hostname);
+  if (!(tldExists)) {
+    return "disable_doh";
+  }
+  return "enable_doh";
 }
 
 
@@ -166,8 +170,8 @@ async function checkGlobalCanary() {
   for (let i = 0; i < addresses.length; i++) {
     let addr = addresses[i];
     if (addr === "192.0.0.8") {
-      return true;
+      return "disable_doh";
     }
   }
-  return false;
+  return "enable_doh";
 }
