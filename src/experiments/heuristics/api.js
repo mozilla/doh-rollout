@@ -6,8 +6,8 @@ Cu3.import("resource://gre/modules/Services.jsm");
 
 
 const heuristicsManager = {
-  async setupTelemetry() {
-    await Services.telemetry.registerEvents("doh", {
+  setupTelemetry() {
+    Services.telemetry.registerEvents("doh", {
       // Results of heuristics
       "evaluate": {
         methods: ["evaluate"],
@@ -17,10 +17,10 @@ const heuristicsManager = {
                      "google", "youtube"]
       }
     });
-    await Services.telemetry.setEventRecordingEnabled("doh", true);
   },
 
   sendHeuristicsPing(decision, results) {
+    console.log(decision, results);
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
                                    decision, results);
     console.log("Ping sent");

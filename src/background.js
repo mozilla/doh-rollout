@@ -74,7 +74,7 @@ const rollout = {
       console.log("Heuristics passed; enabling DoH");
       await stateManager.setState("enabled");
     }
-    await browser.experiments.heuristics.sendHeuristicsPing(decision, results);
+    browser.experiments.heuristics.sendHeuristicsPing(decision, results);
   },
 
   async runSplitDNSCheck(responseDetails) {
