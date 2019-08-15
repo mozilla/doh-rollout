@@ -71,14 +71,6 @@ const rollout = {
     browser.telemetry.submitPing(bucket, payload, options);
   },
 
-  async disableDoh() {
-    await stateManager.setState("disabled");  
-  },
-
-  async enableDoh() {
-    await stateManager.setState("enabled"); 
-  },
-
   async runStartupHeuristics() {
     let contentFilterChecks = await checkContentFilters(); 
     let canaryCheck = {"globalCanary": await checkGlobalCanary()};
@@ -88,10 +80,10 @@ const rollout = {
     let disablingDoh = Object.values(results).some(item => item === true);
     if (disablingDoh) {
       console.log("Heuristics failed; disabling DoH");
-      await this.disableDoh();
+      await stateManager.setState("disabled");
     } else {
       console.log("Heuristics passed; enabling DoH");
-      await this.enableDoh();
+      await stateManager.setState("enabled");
     }
     await this.sendHeuristicsPing(results, disablingDoh);
   },
@@ -100,8 +92,6 @@ const rollout = {
     let tldExists = await checkTLDExists(responseDetails);
     if (!(tldExists)) {
       console.log("Split DNS detected; disabling DoH");
-
-      // TODO: Figure out why this.disableDoh() doesn't work
       await stateManager.setState("disabled");
     }
   },
