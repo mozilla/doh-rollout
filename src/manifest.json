@@ -15,18 +15,12 @@
   "permissions": [
     "tabs",
     "storage",
-    "notifications",
     "telemetry",
     "webRequest",
     "dns",
     "captivePortal",
     "<all_urls>"
   ],
-
-  "browser_action": {
-    "default_icon": "img/experiments-icon.svg",
-    "default_title": "DoH Roll-Out"
-  },
 
   "background": {
     "scripts": ["tld.min.js", "heuristics.js", "background.js"]
@@ -39,14 +33,6 @@
         "scopes": ["addon_parent"],
         "script": "experiments/settings/api.js",
         "paths": [["experiments", "settings"]]
-      }
-    },
-    "notifications": {
-      "schema": "experiments/notifications/schema.json",
-      "parent": {
-        "scopes": ["addon_parent"],
-        "script": "experiments/notifications/api.js",
-        "paths": [["experiments", "notifications"]]
       }
     },
     "heuristics": {

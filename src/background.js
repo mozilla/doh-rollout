@@ -2,9 +2,6 @@
 /* global browser, checkContentFilters, checkGlobalCanary, checkTLDExists */
 
 
-const STUDY_URL = browser.extension.getURL("study.html");
-
-
 const stateManager = {
   _settingName: null,
   _captiveState: "unknown",
@@ -105,19 +102,6 @@ const rollout = {
     await this.main();
   },
 
-  async showTab() {
-    const tabs = await this.findStudyTabs();
-    if (tabs.length) {
-      browser.tabs.update(tabs[0].id, {
-        active: true
-      });
-    } else {
-      browser.tabs.create({
-        url: STUDY_URL
-      });
-    }
-  },
-
   async onReady(details) {
     let currentlyOffline = (stateManager.captiveState !== "unlocked_portal" &&
                             stateManager.captiveState !== "not_captive");
@@ -154,64 +138,6 @@ const rollout = {
 
     // Listen to the captive portal when it unlocks
     browser.captivePortal.onStateChanged.addListener(this.onReady);
-  },
-
-  async handleMessage(message) {
-    switch (message.method) {
-    case "UIDisable":
-      await this.handleUIDisable();
-      break;
-    case "UIOK":
-      await this.handleUIOK();
-      break;
-    }
-  },
-
-  async handleUIOK() {
-    await stateManager.setState("UIOk");
-    browser.experiments.notifications.clear("rollout-prompt");
-  },
-
-  findStudyTabs() {
-    return browser.tabs.query({
-      url: STUDY_URL
-    });
-  },
-
-  async handleUIDisable() {
-    const tabs = await this.findStudyTabs();
-    browser.tabs.remove(tabs.map((tab) => tab.id));
-    browser.experiments.notifications.clear("rollout-prompt");
-  },
-
-  async show() {
-    // This doesn't handle the 'x' clicking on the notification 
-    // mostly because it's not clear what the user intended here.
-    browser.experiments.notifications.onButtonClicked.addListener((options) => {
-      switch (Number(options.buttonIndex)) {
-      case 1:
-        this.handleUIOK();
-        break;
-      case 0:
-        this.handleUIDisable();
-        break;
-      }
-    });
-    browser.experiments.notifications.create("rollout-prompt", {
-      type: "prompt",
-      title: "",
-      message: "notificationMessage",
-      buttons: [
-        {title: "disableButtonText"},
-        {title: "acceptButtonText"}
-      ],
-      moreInfo: {
-        url: STUDY_URL,
-        title: "learnMoreLinkText"
-      }
-    });
-    // Set enabled state last in-case the code above fails.
-    await stateManager.setState("enabled");
   }
 };
 
