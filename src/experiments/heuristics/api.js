@@ -12,18 +12,16 @@ const heuristicsManager = {
       "evaluate": {
         methods: ["evaluate"],
         objects: ["heuristics"],
-        extra_keys: ["canary", "enterprise",
-                     "malware", "parental",
+        extra_keys: ["canary", "policy",
+                     "comcastProtect", "comcastParent",
                      "google", "youtube"]
       }
     });
   },
 
   sendHeuristicsPing(decision, results) {
-    console.log(decision, results);
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
                                    decision, results);
-    console.log("Ping sent");
   },
 
   async checkEnterprisePolicies() {
@@ -31,24 +29,20 @@ const heuristicsManager = {
       let policies = Services.policies.getActivePolicies();
       if (!("DNSOverHTTPS" in policies)) {
         // If DoH isn't in the policy, disable it
-        console.log("DoH not in policy");
         return "disable_doh";
       } else {
         let dohPolicy = policies.DNSOverHTTPS;
         if (dohPolicy.Enabled === true) {
           // If DoH is enabled in the policy, enable it
-          console.log("DoH enabled in policy");
           return "enable_doh";
         } else {
           // If DoH is disabled in the policy, disable it
-          console.log("DoH disable_doh in policy");
           return "disable_doh";
         }
       }
     }
 
     // Enable DoH by default
-    console.log("Policy doesn't exist");
     return "enable_doh";
   }
 };

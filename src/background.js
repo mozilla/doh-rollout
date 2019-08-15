@@ -59,7 +59,7 @@ const rollout = {
     // Combine heuristic results
     let contentFilterChecks = await checkContentFilters(); 
     let canaryCheck = {canary: await checkGlobalCanary()};
-    let policiesCheck = {enterprise: await browser.experiments.heuristics.checkEnterprisePolicies()};
+    let policiesCheck = {policy: await browser.experiments.heuristics.checkEnterprisePolicies()};
     let results = Object.assign(contentFilterChecks, canaryCheck, policiesCheck);
 
     // Check if DoH should be disabled

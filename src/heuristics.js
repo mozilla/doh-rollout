@@ -125,8 +125,8 @@ async function comcastDomains() {
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let safeSearchChecks = await safeSearch();
-  let contentFilterChecks = {malware: comcastChecks.malware,
-                 parental: comcastChecks.parental,
+  let contentFilterChecks = {comcastProtect: comcastChecks.malware,
+                 comcastParent: comcastChecks.parental,
                  google: safeSearchChecks.google,
                  youtube: safeSearchChecks.youtube};
   return contentFilterChecks;

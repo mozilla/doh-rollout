@@ -28,15 +28,15 @@
                 "description": "True if the global canary domain was filtered, false otherwise",
                 "type": "string"
               },
-              "enterprise": {
+              "policy": {
                 "description": "True if enterprise policy blocks DoH, false otherwise",
                 "type": "string"
               },
-              "malware": {
+              "comcastProtect": {
                 "description": "True if user enabled Comcast's malware filter, false othwerise",
                 "type": "string"
               },
-              "parental": {
+              "comcastParent": {
                 "description": "True if user enabled Comcast's parental controls, false otherwise",
                 "type": "string"
               },
