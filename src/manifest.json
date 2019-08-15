@@ -17,7 +17,8 @@
     "storage",
     "notifications",
     "telemetry",
-    "dns"
+    "dns",
+    "captivePortal"
   ],
 
   "browser_action": {

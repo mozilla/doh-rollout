@@ -7,13 +7,15 @@ const STUDY_URL = browser.extension.getURL("study.html");
 
 const stateManager = {
   _settingName: null,
+  _captiveState: "unknown",
 
-  set settingName(settingName) {
-    if (this._settingName === null) {
-      this._settingName = settingName;
-    } else {
-      throw new Error("already set setting");
-    }
+
+  get captiveState() {
+    return this._captiveState;
+  },
+
+  set captiveState(captiveState) {
+    this._captiveState = captiveState;
   },
 
   get settingName() {
@@ -21,6 +23,14 @@ const stateManager = {
       throw new Error("set setting not set");
     } else {
       return this._settingName;
+    }
+  },
+
+  set settingName(settingName) {
+    if (this._settingName === null) {
+      this._settingName = settingName;
+    } else {
+      throw new Error("already set setting");
     }
   },
 
@@ -96,7 +106,7 @@ const rollout = {
     });
     browser.runtime.onMessage.addListener((...args) => 
       this.handleMessage(...args));
-    await this.onReady();
+    await this.main();
   },
 
   async showTab() {
@@ -112,16 +122,36 @@ const rollout = {
     }
   },
 
-  async onReady() {
-    // Check for parental controls, enterprise policies, and the global canary 
-    // domain when the browser starts
-    await stateManager.setSetting("trr-active");
-    await this.runStartupHeuristics(); 
+  async onReady(details) {
+    let currentlyOffline = (stateManager.captiveState !== "unlocked_portal" &&
+                            stateManager.captiveState !== "not_captive");
+    let goingOnline = (details.state === "unlocked_portal" || 
+                       details.state === "not_captive");
 
-    // TODO: Show notification if:
-    //  1) Heuristics don't disable DoH
-    //  2) User hasn't enabled DoH explicitly
-    //  3) User hasn't seen notification before
+    if (currentlyOffline && goingOnline) {
+      // Run startup heuristics to enable/disable DoH
+      await this.runStartupHeuristics();
+
+      // TODO: Show notification if:
+      //  1) Heuristics don't disable DoH
+      //  2) User hasn't enabled DoH explicitly
+      //  3) User hasn't seen notification before
+    }
+    stateManager.captiveState = details.state;
+  },
+
+  async main() {
+    await stateManager.setSetting("trr-active");
+
+    // If the captive portal is already unlocked or doesn't exist,
+    // run the measurement
+    let captiveState = await browser.captivePortal.getState();
+    if (captiveState === "unlocked_portal" || captiveState === "not_captive") {
+      await this.onReady({state: captiveState});
+    }
+
+    // Listen to the captive portal when it unlocks
+    browser.captivePortal.onStateChanged.addListener(this.onReady);
   },
 
   async handleMessage(message) {
