@@ -86,6 +86,10 @@ const rollout = {
     await this.sendHeuristicsPing(results, disablingDoh);
   },
 
+  async runSplitHorizonHeuristic() {
+
+  },
+
   async init() {
     browser.browserAction.onClicked.addListener(() => {
       this.showTab();
@@ -109,41 +113,15 @@ const rollout = {
   },
 
   async onReady() {
-    // If the user has explicitly disabled DoH, don't continue
-    //  if (await browser.experiments.settings.hasModifiedPrerequisites()) {
-    //    return;
-    //  }
-
     // Check for parental controls, enterprise policies, and the global canary 
     // domain when the browser starts
     await stateManager.setSetting("trr-active");
     await this.runStartupHeuristics(); 
 
-    // We should only show the notification when DoH is enabled for
-    // the first time
-    let firstTime = false;
-    if (firstTime) {
-      // Set the DoH preferences.
-      await stateManager.setSetting("trr-active");
-
-      const stateName = await stateManager.getState();
-      switch (stateName) {
-      case "enabled":
-      case "disabled":
-      case "UIDisabled":
-      case "UIOk":
-      case "uninstalled":
-      case null:
-        await stateManager.setState("loaded");
-        await this.show();
-        break;
-        // If the user has a thrown error show the banner again 
-        // (shouldn't happen)
-      case "loaded":
-        await this.show();
-        break;
-      }
-    }
+    // TODO: Show notification if:
+    //  1) Heuristics don't disable DoH
+    //  2) User hasn't enabled DoH explicitly
+    //  3) User hasn't seen notification before
   },
 
   async handleMessage(message) {
