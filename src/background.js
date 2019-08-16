@@ -74,6 +74,8 @@ const rollout = {
       console.log("Heuristics passed; enabling DoH");
       await stateManager.setState("enabled");
     }
+
+    results.evaluateReason = "startup";
     browser.experiments.heuristics.sendHeuristicsPing(decision, results);
   },
 

@@ -12,7 +12,7 @@ const heuristicsManager = {
       "evaluate": {
         methods: ["evaluate"],
         objects: ["heuristics"],
-        extra_keys: ["canary", "policy",
+        extra_keys: ["evaluateReason", "canary", "policy",
                      "comcastProtect", "comcastParent",
                      "google", "youtube"]
       }

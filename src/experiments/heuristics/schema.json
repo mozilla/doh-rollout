@@ -24,6 +24,10 @@
             "name": "results",
             "type": "object",
             "properties": {
+              "evaluateReason": {
+                "description": "Reason why we are running heuristics, e.g. startup",
+                "type": "string"
+              },
               "canary": {
                 "description": "True if the global canary domain was filtered, false otherwise",
                 "type": "string"
