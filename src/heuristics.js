@@ -122,13 +122,24 @@ async function comcastDomains() {
 }
 
 
+async function browserFilter() {
+  let enabled = browser.browserInfo.getParentalControlsEnabled();
+  if (enabled) {
+    return "disable_doh";
+  }
+  return "enable_doh";
+}
+
+
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let safeSearchChecks = await safeSearch();
-  let contentFilterChecks = {comcastProtect: comcastChecks.malware,
-                 comcastParent: comcastChecks.parental,
-                 google: safeSearchChecks.google,
-                 youtube: safeSearchChecks.youtube};
+  let browserFilterCheck = await browserFilter();
+  let contentFilterChecks = {"comcastProtect": comcastChecks.malware,
+                             "comcastParent": comcastChecks.parental,
+                             "google": safeSearchChecks.google,
+                             "youtube": safeSearchChecks.youtube,
+                             "browserFilter": browserFilterCheck};
   return contentFilterChecks;
 }
 

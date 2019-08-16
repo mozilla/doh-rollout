@@ -51,6 +51,10 @@
               "youtube": {
                 "description": "True if user enabled YouTube safe-search, false otherwise",
                 "type": "string"
+              },
+              "browserFilter": {
+                "description": "True if the browser has configured parental controls, false otherwise",
+                "type": "string"
               }
             }
           }
