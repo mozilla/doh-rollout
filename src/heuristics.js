@@ -4,30 +4,30 @@
 
 const GLOBAL_CANARY = "use-application-dns.net";
 
+// TODO: Confirm that this error message corresponds to NXDOMAIN
+const NXDOMAIN_ERR = "NS_ERROR_UNKNOWN_HOST";
+
 
 async function dnsLookup(hostname) {
   let flags = ["disable_trr", "disable_ipv6", "bypass_cache"];
-  let addresses;
+  let addresses, err;
 
   try {
     let response = await browser.dns.resolve(hostname, flags);
     addresses = response.addresses;
   } catch (e) {
-    if (e.message !== "NS_ERROR_UNKNOWN_HOST") {
-      console.error("DNS lookup for heuristics failed for unknown reason");
-    }
-    addresses = null;
+    addresses = [null];
+    err = e.message;
   }
-  return addresses;
+  return {"addresses": addresses, "err": err};
 }
 
 
-// TODO: Randomize order of lookups
 async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    let addresses = await dnsLookup(domain);
+    let {addresses, err} = await dnsLookup(domain);
     results = results.concat(addresses);
   }
   return results;
@@ -164,14 +164,11 @@ async function checkTLDExists(responseDetails) {
 }
 
 
-// TODO: Confirm the expected address when filtering is on
+// TODO: Confirm the expected behavior when filtering is on
 async function checkGlobalCanary() {
-  let addresses = await dnsLookup(GLOBAL_CANARY);
-  for (let i = 0; i < addresses.length; i++) {
-    let addr = addresses[i];
-    if (addr === "192.0.0.8") {
-      return "disable_doh";
-    }
+  let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
+  if (err === NXDOMAIN_ERR) {
+    return "disable_doh";
   }
   return "enable_doh";
 }
