@@ -29,31 +29,31 @@
                 "type": "string"
               },
               "canary": {
-                "description": "True if the global canary domain was filtered, false otherwise",
+                "description": "Indicates whether global canary domain was filtered",
                 "type": "string"
               },
               "policy": {
-                "description": "True if enterprise policy blocks DoH, false otherwise",
+                "description": "Indicates whether browser policy blocks DoH",
                 "type": "string"
               },
               "comcastProtect": {
-                "description": "True if user enabled Comcast's malware filter, false othwerise",
+                "description": "Indicates whether Comcast's malware filter is enabled",
                 "type": "string"
               },
               "comcastParent": {
-                "description": "True if user enabled Comcast's parental controls, false otherwise",
+                "description": "Indicates whether Comcast's parental controls are enabled",
                 "type": "string"
               },
               "google": {
-                "description": "True if user enabled Google safe-search, false otherwise",
+                "description": "Indicates whether Google safe-search is enabled",
                 "type": "string"
               },
               "youtube": {
-                "description": "True if user enabled YouTube safe-search, false otherwise",
+                "description": "Indicates whether YouTube safe-search is enabled",
                 "type": "string"
               },
               "browserFilter": {
-                "description": "True if the browser has configured parental controls, false otherwise",
+                "description": "Indicates whether browser has enabled parental controls",
                 "type": "string"
               }
             }
