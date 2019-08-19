@@ -1,5 +1,5 @@
 "use strict";
-/* global browser, tldjs */
+/* global browser */
 
 
 const GLOBAL_CANARY = "use-application-dns.net";
@@ -123,7 +123,7 @@ async function comcastDomains() {
 
 
 // TODO: Confirm the expected behavior when filtering is on
-async function checkGlobalCanary() {
+async function globalCanary() {
   let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
   if (err === NXDOMAIN_ERR) {
     return "disable_doh";
@@ -132,14 +132,22 @@ async function checkGlobalCanary() {
 }
 
 
-async function checkContentFilters() {
-  let comcastChecks = await comcastDomains();
+async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
-  let parentalControlsCheck = await browser.experiments.heuristics.checkParentalControls();
-  let contentFilterChecks = {"comcastProtect": comcastChecks.malware,
-                             "comcastParent": comcastChecks.parental,
-                             "google": safeSearchChecks.google,
-                             "youtube": safeSearchChecks.youtube,
-                             "parentalControls": parentalControlsCheck};
-  return contentFilterChecks;
+  let comcastChecks = await comcastDomains();
+  let canaryCheck = await globalCanary();
+
+  // Check other heuristics through privileged code
+  let browserParentCheck = await browser.experiments.heuristics.checkParentalControls();
+  let enterpriseCheck = await browser.experiments.heuristics.checkEnterprisePolicies();
+
+  // Return result of each heuristic
+  let heuristics = {"google": safeSearchChecks.google,
+                    "youtube": safeSearchChecks.youtube,
+                    "comcastProtect": comcastChecks.malware,
+                    "comcastParent": comcastChecks.parental,
+                    "canary": canaryCheck,
+                    "browserParent": browserParentCheck,
+                    "policy": enterpriseCheck};
+  return heuristics;
 }

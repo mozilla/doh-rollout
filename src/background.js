@@ -1,5 +1,5 @@
 "use strict";
-/* global browser, checkContentFilters, checkGlobalCanary */
+/* global browser, runHeuristics */
 
 
 const stateManager = {
@@ -56,14 +56,11 @@ const stateManager = {
 
 const rollout = {
   async runStartupHeuristics() {
-    // Combine heuristic results
-    let contentFilterChecks = await checkContentFilters(); 
-    let canaryCheck = {canary: await checkGlobalCanary()};
-    let policiesCheck = {policy: await browser.experiments.heuristics.checkEnterprisePolicies()};
-    let results = Object.assign(contentFilterChecks, canaryCheck, policiesCheck);
+    // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
+    let heuristics = await runHeuristics();
 
     // Check if DoH should be disabled
-    let disablingDoh = Object.values(results).some(item => item === "disable_doh");
+    let disablingDoh = Object.values(heuristics).some(item => item === "disable_doh");
     let decision;
     if (disablingDoh) {
       decision = "disable_doh";
@@ -75,8 +72,8 @@ const rollout = {
       await stateManager.setState("enabled");
     }
 
-    results.evaluateReason = "startup";
-    browser.experiments.heuristics.sendHeuristicsPing(decision, results);
+    heuristics.evaluateReason = "startup";
+    browser.experiments.heuristics.sendHeuristicsPing(decision, heuristics);
   },
 
   async init() {
