@@ -58,6 +58,7 @@ const rollout = {
   async runStartupHeuristics() {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
     let heuristics = await runHeuristics();
+    console.log(heuristics);
 
     // Check if DoH should be disabled
     let disablingDoh = Object.values(heuristics).some(item => item === "disable_doh");

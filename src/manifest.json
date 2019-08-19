@@ -13,16 +13,12 @@
   },
 
   "permissions": [
-    "tabs",
-    "storage",
-    "webRequest",
     "dns",
-    "captivePortal",
-    "<all_urls>"
+    "captivePortal"
   ],
 
   "background": {
-    "scripts": ["tld.min.js", "heuristics.js", "background.js"]
+    "scripts": ["heuristics.js", "background.js"]
   },
 
   "experiment_apis": {
