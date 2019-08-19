@@ -1,8 +1,12 @@
 "use strict";
 /* exported heuristics */
-/* global Components, ExtensionAPI, Services  */
+/* global Cc, Ci, Components, ExtensionAPI, Services  */
 let Cu3 = Components.utils;
 Cu3.import("resource://gre/modules/Services.jsm");
+
+
+let pcs = Cc["@mozilla.org/parental-controls-service;1"]
+          .getService(Ci.nsIParentalControlsService);
 
 
 const heuristicsManager = {
@@ -44,6 +48,14 @@ const heuristicsManager = {
 
     // Enable DoH by default
     return "enable_doh";
+  },
+
+  async checkParentalControls() {
+    let enabled = pcs.parentalControlsEnabled;
+    if (enabled) {
+      return "disable_doh";
+    }
+    return "enable_doh";
   }
 };
 
@@ -65,6 +77,11 @@ var heuristics = class heuristics extends ExtensionAPI {
             let result = await heuristicsManager.checkEnterprisePolicies();
             return result;
           },
+
+          async checkParentalControls() {
+            let result = await heuristicsManager.checkParentalControls();
+            return result;
+          }
         },
       },
     };

@@ -52,7 +52,7 @@
                 "description": "Indicates whether YouTube safe-search is enabled",
                 "type": "string"
               },
-              "browserFilter": {
+              "parentalControls": {
                 "description": "Indicates whether browser has enabled parental controls",
                 "type": "string"
               }
@@ -65,6 +65,14 @@
         "name": "checkEnterprisePolicies",
         "type": "function",
         "description": "Checks for enterprise policies",
+        "parameters": [
+        ],
+        "async": true
+      },
+      {
+        "name": "checkParentalControls",
+        "type": "function",
+        "description": "Checks for browser-based parental controls",
         "parameters": [
         ],
         "async": true
