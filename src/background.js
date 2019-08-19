@@ -119,4 +119,7 @@ const rollout = {
 };
 
 
-rollout.init();
+// rollout.init();
+browser.experiments.netChange.onConnectionChanged.addListener((options) => {
+  console.log(options);
+});
