@@ -122,6 +122,16 @@ async function comcastDomains() {
 }
 
 
+// TODO: Confirm the expected behavior when filtering is on
+async function checkGlobalCanary() {
+  let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
+  if (err === NXDOMAIN_ERR) {
+    return "disable_doh";
+  }
+  return "enable_doh";
+}
+
+
 async function checkContentFilters() {
   let comcastChecks = await comcastDomains();
   let safeSearchChecks = await safeSearch();
@@ -132,45 +142,4 @@ async function checkContentFilters() {
                              "youtube": safeSearchChecks.youtube,
                              "parentalControls": parentalControlsCheck};
   return contentFilterChecks;
-}
-
-
-async function checkTLDExists(responseDetails) {
-  let url = responseDetails.url;
-  let ip = responseDetails.ip;
-  let hostname = new URL(url).hostname;
-  let fromCache = responseDetails.fromCache;
-  let redirectUrl = responseDetails.redirectUrl;
-
-  // Ignore anything from localhost
-  if (hostname === "localhost") {
-    return "enable_doh";
-  }
-
-  // If we didn't get IP/hostname fields from the response object, then either:
-  //   a) We read the webpage from the browser cache
-  //   b) We are being redirected
-  //   c) Something undefined happened
-  if (!ip || !hostname) {
-    if (!fromCache && !redirectUrl) {
-      console.error("Unknown reason for empty IP/Hostname fields", url);
-    }
-    return "enable_doh";
-  }
-
-  let tldExists = tldjs.tldExists(hostname);
-  if (!(tldExists)) {
-    return "disable_doh";
-  }
-  return "enable_doh";
-}
-
-
-// TODO: Confirm the expected behavior when filtering is on
-async function checkGlobalCanary() {
-  let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
-  if (err === NXDOMAIN_ERR) {
-    return "disable_doh";
-  }
-  return "enable_doh";
 }
