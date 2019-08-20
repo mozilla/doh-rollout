@@ -104,57 +104,55 @@ const rollout = {
   },
 
   async init() {
-    browser.experiments.doorhanger.onDoorhangerAccept.addListener(
-      (tabId) => {
-        console.log("Doorhanger accepted on tab", tabId);
-      }
-    );
-    browser.experiments.doorhanger.onDoorhangerDecline.addListener(
-      (tabId) => {
-        console.log("Doorhanger declined on tab", tabId);
-      }
-    );
-    await browser.experiments.doorhanger.show();
-
-    //let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-    //if (shouldRunHeuristics) {
-    //  await this.main();
-    //  await stateManager.rememberTRRMode();
-    //}
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+    if (shouldRunHeuristics) {
+      await this.main();
+      await stateManager.rememberTRRMode();
+    }
   },
 
   async onReady(details) {
-    let currentlyOffline = (stateManager.captiveState !== "unlocked_portal" &&
-                            stateManager.captiveState !== "not_captive");
-    let goingOnline = (details.state === "unlocked_portal" || 
-                       details.state === "not_captive");
+    // Only proceed if we're not behind a captive portal
+    if ((details.state !== "unlocked_portal") && 
+        (details.state !== "not_captive")) {
+      return;
+    }
+  
+    // Run startup heuristics to enable/disable DoH
+    await this.heuristics("startup");
 
-    if (currentlyOffline && goingOnline) {
-      // Run startup heuristics to enable/disable DoH
-      await this.heuristics("startup");
-
-      // Run heuristics on network change events to enable/disable DoH
-      browser.experiments.netChange.onConnectionChanged.addListener(
-        async (reason) => {
-          if (reason === "changed") {
-            // Possible race condition between multiple notifications?
-            let curTime = new Date().getTime() / 1000;
-            let timePassed = curTime - notificationTime;
-            console.log("Time passed since last network change:", timePassed);
-            if (timePassed > 30) {
-              notificationTime = curTime;
-              await this.heuristics("netChange");
-            }
+    // Run heuristics on network change events to enable/disable DoH
+    browser.experiments.netChange.onConnectionChanged.addListener(
+      async (reason) => {
+        if (reason === "changed") {
+          // Possible race condition between multiple notifications?
+          let curTime = new Date().getTime() / 1000;
+          let timePassed = curTime - notificationTime;
+          console.log("Time passed since last network change:", timePassed);
+          if (timePassed > 30) {
+            notificationTime = curTime;
+            await this.heuristics("netChange");
           }
         }
-      );
+      }
+    );
 
-      // TODO: Show notification if:
-      //  1) Heuristics don't disable DoH
-      //  2) User hasn't enabled DoH explicitly
-      //  3) User hasn't seen notification before
-    }
-    stateManager.captiveState = details.state;
+    // TODO: Show notification if:
+    //  1) Heuristics don't disable DoH
+    //  2) User hasn't enabled DoH explicitly
+    //  3) User hasn't seen notification before
+
+    // browser.experiments.doorhanger.onDoorhangerAccept.addListener(
+    //   (tabId) => {
+    //     console.log("Doorhanger accepted on tab", tabId);
+    //   }
+    // );
+    // browser.experiments.doorhanger.onDoorhangerDecline.addListener(
+    //   (tabId) => {
+    //     console.log("Doorhanger declined on tab", tabId);
+    //   }
+    // );
+    // await browser.experiments.doorhanger.show();
   },
 
   async main() {
@@ -167,7 +165,8 @@ const rollout = {
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
-    if (captiveState === "unlocked_portal" || captiveState === "not_captive") {
+    if ((captiveState === "unlocked_portal") || 
+        (captiveState === "not_captive")) {
       await this.onReady({state: captiveState});
     }
 
