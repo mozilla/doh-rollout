@@ -6,10 +6,18 @@ Cu4.import("resource://gre/modules/Services.jsm");
 Cu4.import("resource://gre/modules/ExtensionCommon.jsm");
 
 
+const { clearTimeout, setTimeout } = Cu4.import(
+    "resource://gre/modules/Timer.jsm"
+);
+
 var {EventManager, EventEmitter} = ExtensionCommon;
 let gNetworkLinkService= Cc["@mozilla.org/network/network-link-service;1"]
                          .getService(Ci.nsINetworkLinkService);
 
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 var netChange = class netChange extends ExtensionAPI { 
   getAPI(context) {
@@ -20,13 +28,18 @@ var netChange = class netChange extends ExtensionAPI {
             context,
             name: "netChange.onConnectionChanged",
             register: fire => {
-              let observer = _ => {
-                let connectivity = true; // let's be optimistic!
-                if (gNetworkLinkService.linkStatusKnown) {
-                  console.log("Link changed; network is up");
-                  connectivity = gNetworkLinkService.isLinkUp;
+              let observer = async (subject, topic, data) => {
+                console.log(topic, data, gNetworkLinkService.isLinkUp,
+                            gNetworkLinkService.linkStatusKnown);
+                if (gNetworkLinkService.linkStatusKnown &&
+                    gNetworkLinkService.isLinkUp &&
+                    data === "changed") {
+                  // The "changed" event sometimes fires when the connection 
+                  // isn't quite up yet. We should wait before running the 
+                  // heuristics to ensure the network is up.
+                  await sleep(10000);
+                  fire.async(data);
                 }
-                fire.async(connectivity);
               };
               Services.obs.addObserver(observer, "network:link-status-changed");
               return () => {

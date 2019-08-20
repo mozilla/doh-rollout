@@ -55,7 +55,7 @@ const stateManager = {
 
 
 const rollout = {
-  async runStartupHeuristics() {
+  async heuristics(evaluateReason) {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
     let heuristics = await runHeuristics();
     console.log(heuristics);
@@ -73,7 +73,7 @@ const rollout = {
       await stateManager.setState("enabled");
     }
 
-    heuristics.evaluateReason = "startup";
+    heuristics.evaluateReason = evaluateReason;
     browser.experiments.heuristics.sendHeuristicsPing(decision, heuristics);
   },
 
@@ -89,7 +89,16 @@ const rollout = {
 
     if (currentlyOffline && goingOnline) {
       // Run startup heuristics to enable/disable DoH
-      await this.runStartupHeuristics();
+      await this.heuristics("startup");
+
+      // Run heuristics on network change events to enable/disable DoH
+      browser.experiments.netChange.onConnectionChanged.addListener(
+        async (reason) => {
+          if (reason === "changed") {
+            await this.heuristics("netChange");
+          }
+        }
+      );
 
       // TODO: Show notification if:
       //  1) Heuristics don't disable DoH
@@ -119,7 +128,4 @@ const rollout = {
 };
 
 
-// rollout.init();
-browser.experiments.netChange.onConnectionChanged.addListener((options) => {
-  console.log(options);
-});
+rollout.init();
