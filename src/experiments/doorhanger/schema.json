@@ -14,17 +14,17 @@
     ],
     "events": [
       {
-        "name": "onReportPageBroken",
+        "name": "onDoorhangerAccept",
         "type": "function",
-        "description": "The user clicked 'yes', this page was broken.",
+        "description": "The user clicked 'OK, Got It'",
         "parameters": [
           {"type": "integer", "name": "tabId", "minimum": 0}
         ]
       },
       {
-        "name": "onReportPageNotBroken",
+        "name": "onDoorhangerDecline",
         "type": "function",
-        "description": "The user clicked 'no', this page was not broken.",
+        "description": "The user clicked 'Disable Protection'",
         "parameters": [
           {"type": "integer", "name": "tabId", "minimum": 0}
         ]

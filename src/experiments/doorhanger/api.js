@@ -29,7 +29,7 @@ function getMostRecentBrowserWindow() {
 }
 
 
-class PopupNotificationEventEmitter extends EventEmitter {
+class DoorhangerEventEmitter extends EventEmitter {
   async emitShow(variationName) {
     const self = this;
     const recentWindow = getMostRecentBrowserWindow();
@@ -41,7 +41,7 @@ class PopupNotificationEventEmitter extends EventEmitter {
       label: "OK, Got It",
       accessKey: "f",
       callback: () => {
-        self.emit("enable_doh", tabId);
+        self.emit("doorhanger-accept", tabId);
       },
     };
     const secondaryActions =  [
@@ -49,7 +49,7 @@ class PopupNotificationEventEmitter extends EventEmitter {
         label: "Disable Protection",
         accessKey: "d",
         callback: () => {
-          self.emit("disable_doh", tabId);
+          self.emit("doorhanger-decline", tabId);
         },
       },
     ];
@@ -69,67 +69,52 @@ class PopupNotificationEventEmitter extends EventEmitter {
 
 
 var doorhanger = class doorhanger extends ExtensionAPI {
-  /**
-   * Extension Shutdown
-   * Goes through each tab for each window and removes the notification, if it exists.
-   */
-  onShutdown(shutdownReason) {
-    for (const win of BrowserWindowTracker.orderedWindows) {
-      for (const browser of win.gBrowser.browsers) {
-        const notification = win.PopupNotifications.getNotification("cookie-restriction", browser);
-        if (notification) {
-          win.PopupNotifications.remove(notification);
-        }
-      }
-    }
-  }
-
   getAPI(context) {
-    const popupNotificationEventEmitter = new PopupNotificationEventEmitter();
+    const doorhangerEventEmitter= new DoorhangerEventEmitter();
     return {
       experiments: {
         doorhanger: {
           async show() {
-            await popupNotificationEventEmitter.emitShow();
+            await doorhangerEventEmitter.emitShow();
           },
-          onReportPageBroken: new EventManager(
+          onDoorhangerAccept: new EventManager({
             context,
-            "popupNotification.onReportPageBroken",
-            fire => {
-              const listener = (value, tabId) => {
+            name: "doorhanger.onDoorhangerAccept",
+            register: fire => {
+              let listener = (value, tabId) => {
                 fire.async(tabId);
               };
-              popupNotificationEventEmitter.on(
-                "page-broken",
+              doorhangerEventEmitter.on(
+                "doorhanger-accept",
                 listener,
               );
               return () => {
-                popupNotificationEventEmitter.off(
-                  "page-broken",
+                doorhangerEventEmitter.off(
+                  "doorhanger-accept",
                   listener,
                 );
               };
             },
-          ).api(),
-          onReportPageNotBroken: new EventManager(
+          }).api(),
+          onDoorhangerDecline: new EventManager({
             context,
-            "popupNotification.onReportPageNotBroken",
-            fire => {
-              const listener = (value, tabId) => {
+            name: "doorhanger.onDoorhangerDecline",
+            register: fire => {
+              let listener = (value, tabId) => {
                 fire.async(tabId);
               };
-              popupNotificationEventEmitter.on(
-                "page-not-broken",
+              doorhangerEventEmitter.on(
+                "doorhanger-decline",
                 listener,
               );
               return () => {
-                popupNotificationEventEmitter.off(
-                  "page-not-broken",
+                doorhangerEventEmitter.off(
+                  "doorhanger-decline",
                   listener,
                 );
               };
-            },
-          ).api(),
+            }
+          }).api(),
         },
       }
     };

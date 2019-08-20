@@ -104,7 +104,18 @@ const rollout = {
   },
 
   async init() {
+    browser.experiments.doorhanger.onDoorhangerAccept.addListener(
+      (tabId) => {
+        console.log("Doorhanger accepted on tab", tabId);
+      }
+    );
+    browser.experiments.doorhanger.onDoorhangerDecline.addListener(
+      (tabId) => {
+        console.log("Doorhanger declined on tab", tabId);
+      }
+    );
     await browser.experiments.doorhanger.show();
+
     //let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     //if (shouldRunHeuristics) {
     //  await this.main();
