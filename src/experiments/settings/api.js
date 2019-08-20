@@ -227,6 +227,12 @@ var settings = class settings extends ExtensionAPI {
           },
           async clear(stateName) {
             return settingManager.clear(extension.id, stateName);
+          },
+          async setPref(name, value, type) {
+            return prefManager.setPref(name, value, type);
+          },
+          async getUserPref(name, value) {
+            return prefManager.getUserPref(name, value);
           }
         },
       },

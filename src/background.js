@@ -51,6 +51,29 @@ const stateManager = {
   async clear(stateKey = null) {
     browser.experiments.settings.clear(stateKey);
   },
+
+  async rememberTRRMode() {
+    let curMode = await browser.experiments.settings.getUserPref("network.trr.mode", -1);
+    console.log("Saving current trr mode:", curMode);
+    await browser.experiments.settings.setPref("doh-rollout.previous.trr.mode", curMode, "int");
+  },
+
+  async shouldRunHeuristics() {
+    let prevMode = await browser.experiments.settings.getUserPref(
+      "doh-rollout.previous.trr.mode", 0);
+    let curMode = await browser.experiments.settings.getUserPref(
+      "network.trr.mode", 0);
+    console.log("Comparing previous trr mode to current mode:", 
+      prevMode, curMode);
+
+    // Only run heuristics if previous mode equals current mode
+    // In other words, if the user has made their own decision for DoH,
+    // then we want to respect that
+    if (prevMode !== curMode) {
+      return false;
+    }
+    return true;
+  }
 };
 
 
@@ -81,7 +104,11 @@ const rollout = {
   },
 
   async init() {
-    await this.main();
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+    if (shouldRunHeuristics) {
+      await this.main();
+      await stateManager.rememberTRRMode();
+    }
   },
 
   async onReady(details) {
@@ -100,7 +127,6 @@ const rollout = {
           if (reason === "changed") {
             // Possible race condition between multiple notifications?
             let curTime = new Date().getTime() / 1000;
-            // let timePassed = secondsAgo(notificationTime, curTime);
             let timePassed = curTime - notificationTime;
             console.log("Time passed since last network change:", timePassed);
             if (timePassed > 30) {
