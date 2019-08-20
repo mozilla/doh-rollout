@@ -106,6 +106,7 @@ const rollout = {
   async init() {
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
+      //await browser.experiments.doorhanger.show();
       await this.main();
       await stateManager.rememberTRRMode();
     }

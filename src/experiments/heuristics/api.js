@@ -18,7 +18,7 @@ const heuristicsManager = {
         objects: ["heuristics"],
         extra_keys: ["google", "youtube",
                      "comcastProtect", "comcastParent",
-                     "canary", "enterpriseRoots", 
+                     "canary", "modifiedRoots", 
                      "browserParent", "policy",
                      "evaluateReason"]
       }

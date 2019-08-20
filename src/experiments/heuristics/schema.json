@@ -44,7 +44,7 @@
                 "description": "Indicates whether global canary domain was filtered",
                 "type": "string"
               },
-              "enterpriseRoots": {
+              "modifiedRoots": {
                 "description": "Indicates whether enterprise roots are enabled",
                 "type": "string"
               },
