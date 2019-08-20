@@ -37,24 +37,19 @@ class PopupNotificationEventEmitter extends EventEmitter {
     const tabId = tabTracker.getBrowserTabId(browser);
 
     const primaryAction =  {
-      disableHighlight: true,
-      label: "Page Was Broken",
+      disableHighlight: false,
+      label: "OK, Got It",
       accessKey: "f",
       callback: () => {
-        const hasException = Services.perms.testExactPermissionFromPrincipal(recentWindow.gBrowser.contentPrincipal, "trackingprotection") === Services.perms.ALLOW_ACTION;
-        if (!hasException) {
-          const addExceptionButton = recentWindow.document.getElementById("tracking-action-unblock");
-          addExceptionButton.doCommand();
-        }
-        self.emit("page-broken", tabId);
+        self.emit("enable_doh", tabId);
       },
     };
     const secondaryActions =  [
       {
-        label: "Other Reason",
+        label: "Disable Protection",
         accessKey: "d",
         callback: () => {
-          self.emit("page-not-broken", tabId);
+          self.emit("disable_doh", tabId);
         },
       },
     ];
@@ -63,10 +58,11 @@ class PopupNotificationEventEmitter extends EventEmitter {
       hideClose: true,
       persistent: true,
       autofocus: true,
-      name: "Firefox Survey: ",
+      name: "More secure, encrypted DNS lookups",
       popupIconURL: "chrome://branding/content/icon64.png",
+      learnMoreURL: "https://www.google.com"
     };
-    recentWindow.PopupNotifications.show(browser, "cookie-restriction", "<> Why did you reload this page?", null, primaryAction, secondaryActions, options);
+    recentWindow.PopupNotifications.show(browser, "doh-first-time", "<> Firefox now sends your DNS lookups over an encrypted connection provided by a trusted partner. This helps protect against phishing, malware, and surveillance.", null, primaryAction, secondaryActions, options);
   }
 }
 
