@@ -58,9 +58,10 @@ class PopupNotificationEventEmitter extends EventEmitter {
       hideClose: true,
       persistent: true,
       autofocus: true,
+      timeout: 15000,
       name: "More secure, encrypted DNS lookups",
       popupIconURL: "chrome://branding/content/icon64.png",
-      learnMoreURL: "https://www.google.com"
+      learnMoreURL: "https://duckduckgo.com",
     };
     recentWindow.PopupNotifications.show(browser, "doh-first-time", "<> Firefox now sends your DNS lookups over an encrypted connection provided by a trusted partner. This helps protect against phishing, malware, and surveillance.", null, primaryAction, secondaryActions, options);
   }
