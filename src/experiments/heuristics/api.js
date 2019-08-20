@@ -18,7 +18,8 @@ const heuristicsManager = {
         objects: ["heuristics"],
         extra_keys: ["google", "youtube",
                      "comcastProtect", "comcastParent",
-                     "canary", "browserParent", "policy",
+                     "canary", "enterpriseRoots", 
+                     "browserParent", "policy",
                      "evaluateReason"]
       }
     });

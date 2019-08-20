@@ -44,6 +44,10 @@
                 "description": "Indicates whether global canary domain was filtered",
                 "type": "string"
               },
+              "enterpriseRoots": {
+                "description": "Indicates whether enterprise roots are enabled",
+                "type": "string"
+              },
               "browserParent": {
                 "description": "Indicates whether browser has enabled parental controls",
                 "type": "string"

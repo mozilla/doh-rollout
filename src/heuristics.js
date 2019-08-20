@@ -132,10 +132,21 @@ async function globalCanary() {
 }
 
 
+async function enterpriseRoots() {
+  let rootsEnabled = await browser.experiments.settings.getUserPref(
+    "security.enterprise_roots.enabled", false);
+  if (rootsEnabled) {
+    return "disable_doh";
+  }
+  return "enable_doh";
+}
+
+
 async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
   let comcastChecks = await comcastDomains();
   let canaryCheck = await globalCanary();
+  let enterpriseRootsCheck = await enterpriseRoots();
 
   // Check other heuristics through privileged code
   let browserParentCheck = await browser.experiments.heuristics.checkParentalControls();
@@ -147,6 +158,7 @@ async function runHeuristics() {
                     "comcastProtect": comcastChecks.malware,
                     "comcastParent": comcastChecks.parental,
                     "canary": canaryCheck,
+                    "enterpriseRoots": enterpriseRootsCheck,
                     "browserParent": browserParentCheck,
                     "policy": enterpriseCheck};
   return heuristics;
