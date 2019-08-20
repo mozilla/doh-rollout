@@ -45,6 +45,14 @@
         "script": "experiments/netChange/api.js",
         "paths": [["experiments", "netChange"]]
       }
+    },
+    "doorhanger": {
+      "schema": "experiments/doorhanger/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/doorhanger/api.js",
+        "paths": [["experiments", "doorhanger"]]
+      }
     }
   }
 }
