@@ -27,7 +27,7 @@ async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    let {addresses, err} = await dnsLookup(domain);
+    let {addresses, _} = await dnsLookup(domain);
     results = results.concat(addresses);
   }
   return results;
@@ -124,8 +124,7 @@ async function comcastDomains() {
 
 // TODO: Confirm the expected behavior when filtering is on
 async function globalCanary() {
-  let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
-  console.log(addresses, err);
+  let {_, err} = await dnsLookup(GLOBAL_CANARY);
   if (err === NXDOMAIN_ERR) {
     return "disable_doh";
   }

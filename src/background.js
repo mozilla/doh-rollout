@@ -54,11 +54,14 @@ const stateManager = {
 };
 
 
+var notificationTime = new Date().getTime() / 1000;
+
+
 const rollout = {
+
   async heuristics(evaluateReason) {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
     let heuristics = await runHeuristics();
-    console.log(heuristics);
 
     // Check if DoH should be disabled
     let disablingDoh = Object.values(heuristics).some(item => item === "disable_doh");
@@ -95,7 +98,15 @@ const rollout = {
       browser.experiments.netChange.onConnectionChanged.addListener(
         async (reason) => {
           if (reason === "changed") {
-            await this.heuristics("netChange");
+            // Possible race condition between multiple notifications?
+            let curTime = new Date().getTime() / 1000;
+            // let timePassed = secondsAgo(notificationTime, curTime);
+            let timePassed = curTime - notificationTime;
+            console.log("Time passed since last network change:", timePassed);
+            if (timePassed > 30) {
+              notificationTime = curTime;
+              await this.heuristics("netChange");
+            }
           }
         }
       );

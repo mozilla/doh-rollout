@@ -19,6 +19,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
 var netChange = class netChange extends ExtensionAPI { 
   getAPI(context) {
     return {
@@ -29,15 +30,13 @@ var netChange = class netChange extends ExtensionAPI {
             name: "netChange.onConnectionChanged",
             register: fire => {
               let observer = async (subject, topic, data) => {
-                console.log(topic, data, gNetworkLinkService.isLinkUp,
-                            gNetworkLinkService.linkStatusKnown);
                 if (gNetworkLinkService.linkStatusKnown &&
                     gNetworkLinkService.isLinkUp &&
                     data === "changed") {
                   // The "changed" event sometimes fires when the connection 
                   // isn't quite up yet. We should wait before running the 
                   // heuristics to ensure the network is up.
-                  await sleep(10000);
+                  await sleep(5000);
                   fire.async(data);
                 }
               };
