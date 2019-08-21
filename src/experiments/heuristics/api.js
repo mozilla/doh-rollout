@@ -11,8 +11,8 @@ let pcs = Cc["@mozilla.org/parental-controls-service;1"]
 
 const heuristicsManager = {
   setupTelemetry() {
+    // Set up the Telemetry for the heuristics
     Services.telemetry.registerEvents("doh", {
-      // Results of heuristics
       "evaluate": {
         methods: ["evaluate"],
         objects: ["heuristics"],
@@ -23,11 +23,24 @@ const heuristicsManager = {
                      "evaluateReason"]
       }
     });
+
+    // Set up the Telemetry for the doorhanger
+    Services.telemetry.registerEvents("doh", {
+      "doorhanger": {
+        methods: ["doorhanger"],
+        objects: ["enable_button", "disable_button", "timeout"]
+      }
+    });
   },
 
-  sendHeuristicsPing(decision, results) {
+  sendHeuristicsPing(decision, heuristicsResults) {
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
-                                   decision, results);
+                                   decision, heuristicsResults);
+  },
+
+  sendDoorhangerPing(reason) {
+    console.log("Sending a doorhanger ping");
+    Services.telemetry.recordEvent("doh", "doorhanger", reason, "null");
   },
 
   async checkEnterprisePolicies() {
@@ -73,6 +86,10 @@ var heuristics = class heuristics extends ExtensionAPI {
 
           sendHeuristicsPing(decision, results) {
             heuristicsManager.sendHeuristicsPing(decision, results); 
+          },
+
+          sendDoorhangerPing(reason) {
+            heuristicsManager.sendDoorhangerPing(reason);
           },
 
           async checkEnterprisePolicies() {

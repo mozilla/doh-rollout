@@ -66,6 +66,18 @@
         "async": false
       },
       {
+        "name": "sendDoorhangerPing",
+        "type": "function",
+        "description": "Sends a ping for interactions with the doorhanger",
+        "parameters": [
+          {
+            "name": "reason",
+            "type": "string"
+          }
+        ],
+        "async": false
+      },
+      {
         "name": "checkEnterprisePolicies",
         "type": "function",
         "description": "Checks for enterprise policies",

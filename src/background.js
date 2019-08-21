@@ -71,10 +71,16 @@ const stateManager = {
     console.log("Comparing previous trr mode to current mode:", 
       prevMode, curMode);
 
-    // Only run heuristics if previous mode equals current mode
+    // Don't run heuristics if:
+    //  1) previous doesn't mode equals current mode, i.e. user overrode our changes
+    //  2) TRR mode equals 5, i.e. user clicked "No" on doorhanger
+    //  3) TRR mode equuls 3, i.e. user enabled "strictly on" for DoH
+    //
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that
-    if (prevMode !== curMode) {
+    if ((prevMode !== curMode) ||
+        (curMode === 5) ||
+        (curMode === 3)) {
       return false;
     }
     return true;
@@ -98,6 +104,7 @@ const rollout = {
     await stateManager.setState("UIOk");
     await stateManager.rememberTRRMode();
     await stateManager.rememberDoorhangerShown();
+    browser.experiments.heuristics.sendDoorhangerPing("enable_button");
   },
 
   async doorhangerDeclineListener(tabId) {
@@ -105,6 +112,7 @@ const rollout = {
     await stateManager.setState("UIDisabled");
     await stateManager.rememberTRRMode();
     await stateManager.rememberDoorhangerShown();
+    browser.experiments.heuristics.sendDoorhangerPing("disable_button");
   },
 
   async netChangeListener(reason) {
@@ -196,7 +204,6 @@ const rollout = {
     // If the heuristics say to enable DoH, determine if the doorhanger 
     // should be shown
     } else if (shouldShowDoorhanger) {
-      console.log("Woof");
       browser.experiments.doorhanger.onDoorhangerAccept.addListener(
         this.doorhangerAcceptListener
       );
