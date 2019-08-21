@@ -60,7 +60,20 @@ const stateManager = {
 
   async rememberDoorhangerShown() {
     console.log("Remembering that doorhanger has been shown");
-    await browser.experiments.settings.setPref("doh-rollout.doorhanger-shown", true, "bool");
+    await browser.experiments.settings.setPref("doh-rollout.doorhanger-shown", 
+      true, "bool");
+  },
+
+  async rememberDoorhangerPingSent() {
+    console.log("Remembering that doorhanger ping has been sent");
+    await browser.experiments.settings.setPref("doh-rollout.doorhanger-ping-sent", 
+      true, "bool");
+  },
+
+  async rememberDoorhangerDecision(decision) {
+    console.log("Remember doorhanger decision:", decision);
+    await browser.experiments.settings.setPref("doh-rollout.doorhanger-decision", 
+      decision, "string");
   },
 
   async shouldRunHeuristics() {
@@ -89,6 +102,20 @@ const stateManager = {
   async shouldShowDoorhanger() {
     let doorhangerShown = await browser.experiments.settings.getUserPref(
       "doh-rollout.doorhanger-shown", false);
+    let doorhangerDecision = await browser.experiments.settings.getUserPref(
+      "doh-rollout.doorhanger-decision", "timeout");
+    let doorhangerPingSent = await browser.experiments.settings.getUserPref(
+      "doh-rollout.doorhanger-ping-sent", false);
+
+    // If we've shown the doorhanger but haven't sent the ping, do it now
+    if (doorhangerShown && !(doorhangerPingSent)) {
+      await stateManager.setState("UITimeout");
+      await stateManager.rememberTRRMode();
+      await stateManager.rememberDoorhangerDecision("timeout");
+      browser.experiments.heuristics.sendDoorhangerPing(doorhangerDecision);
+      await stateManager.rememberDoorhangerPingSent();
+    }
+
     console.log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
   }
@@ -103,16 +130,18 @@ const rollout = {
     console.log("Doorhanger accepted on tab", tabId);
     await stateManager.setState("UIOk");
     await stateManager.rememberTRRMode();
-    await stateManager.rememberDoorhangerShown();
+    await stateManager.rememberDoorhangerDecision("enable_button");
     browser.experiments.heuristics.sendDoorhangerPing("enable_button");
+    await stateManager.rememberDoorhangerPingSent();
   },
 
   async doorhangerDeclineListener(tabId) {
     console.log("Doorhanger declined on tab", tabId);
     await stateManager.setState("UIDisabled");
     await stateManager.rememberTRRMode();
-    await stateManager.rememberDoorhangerShown();
+    await stateManager.rememberDoorhangerDecision("disable_button");
     browser.experiments.heuristics.sendDoorhangerPing("disable_button");
+    await stateManager.rememberDoorhangerPingSent();
   },
 
   async netChangeListener(reason) {
@@ -193,7 +222,7 @@ const rollout = {
         (details.state !== "not_captive")) {
       return;
     }
-  
+
     // Run startup heuristics to determine if DoH should be disabled 
     let decision = await this.heuristics("startup");
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
@@ -211,6 +240,7 @@ const rollout = {
         this.doorhangerDeclineListener
       );
       await browser.experiments.doorhanger.show();
+      await stateManager.rememberDoorhangerShown();
 
     // If the doorhanger doesn't need to be shown and the heuristics 
     // say to enable DoH, enable it

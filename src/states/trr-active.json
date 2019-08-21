@@ -68,6 +68,17 @@
         "network.trr.mode": 2,
         "network.trr.disable-ECS": true
       }
+    },
+    "UITimeout": {
+      "id": -5,
+      "_comment": "User saw disclosure and did nothing by the time the browser closed",
+      "prefs": {
+      },
+      "persistPrefs": {
+        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
+        "network.trr.mode": 2,
+        "network.trr.disable-ECS": true
+      }
     }
   }
 }
