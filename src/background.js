@@ -58,6 +58,11 @@ const stateManager = {
     await browser.experiments.settings.setPref("doh-rollout.previous.trr.mode", curMode, "int");
   },
 
+  async rememberDoorhangerShown() {
+    console.log("Remembering that doorhanger has been shown");
+    await browser.experiments.settings.setPref("doh-rollout.doorhanger-shown", true, "bool");
+  },
+
   async shouldRunHeuristics() {
     let prevMode = await browser.experiments.settings.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
@@ -73,6 +78,13 @@ const stateManager = {
       return false;
     }
     return true;
+  },
+
+  async shouldShowDoorhanger() {
+    let doorhangerShown = await browser.experiments.settings.getUserPref(
+      "doh-rollout.doorhanger-shown", false);
+    console.log("Should show doorhanger:", !doorhangerShown);
+    return !doorhangerShown;
   }
 };
 
@@ -81,6 +93,44 @@ var notificationTime = new Date().getTime() / 1000;
 
 
 const rollout = {
+  async doorhangerAcceptListener(tabId) {
+    console.log("Doorhanger accepted on tab", tabId);
+    await stateManager.setState("UIOk");
+    await stateManager.rememberTRRMode();
+    await stateManager.rememberDoorhangerShown();
+  },
+
+  async doorhangerDeclineListener(tabId) {
+    console.log("Doorhanger declined on tab", tabId);
+    await stateManager.setState("UIDisabled");
+    await stateManager.rememberTRRMode();
+    await stateManager.rememberDoorhangerShown();
+  },
+
+  async netChangeListener(reason) {
+    if (reason !== "changed") {
+      return;
+    }
+
+    // Possible race condition between multiple notifications?
+    let curTime = new Date().getTime() / 1000;
+    let timePassed = curTime - notificationTime;
+    console.log("Time passed since last network change:", timePassed);
+    if (timePassed < 30) {
+      return;
+    }
+    notificationTime = curTime;
+
+    // Run heuristics to determine if DoH should be disabled
+    let decision = await this.heuristics("netChange");
+    if (decision === "disable_doh") {
+      await stateManager.setState("disabled"); 
+      await stateManager.rememberTRRMode();
+    } else {
+      await stateManager.setState("enabled");
+      await stateManager.rememberTRRMode();
+    }
+  },
 
   async heuristics(evaluateReason) {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
@@ -91,68 +141,23 @@ const rollout = {
     let decision;
     if (disablingDoh) {
       decision = "disable_doh";
-      console.log("Heuristics failed; disabling DoH");
-      await stateManager.setState("disabled");
     } else {
       decision = "enable_doh";
-      console.log("Heuristics passed; enabling DoH");
-      await stateManager.setState("enabled");
     }
+    console.log("Heuristics decision on " + evaluateReason + ": " + decision);
 
+    // Send Telemetry on results of heuristics
     heuristics.evaluateReason = evaluateReason;
     browser.experiments.heuristics.sendHeuristicsPing(decision, heuristics);
+    return decision;
   },
 
   async init() {
+    // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
       await this.main();
-      await stateManager.rememberTRRMode();
     }
-  },
-
-  async onReady(details) {
-    // Only proceed if we're not behind a captive portal
-    if ((details.state !== "unlocked_portal") && 
-        (details.state !== "not_captive")) {
-      return;
-    }
-  
-    // Run startup heuristics to enable/disable DoH
-    await this.heuristics("startup");
-
-    // Run heuristics on network change events to enable/disable DoH
-    browser.experiments.netChange.onConnectionChanged.addListener(
-      async (reason) => {
-        if (reason === "changed") {
-          // Possible race condition between multiple notifications?
-          let curTime = new Date().getTime() / 1000;
-          let timePassed = curTime - notificationTime;
-          console.log("Time passed since last network change:", timePassed);
-          if (timePassed > 30) {
-            notificationTime = curTime;
-            await this.heuristics("netChange");
-          }
-        }
-      }
-    );
-
-    // TODO: Show notification if:
-    //  1) Heuristics don't disable DoH
-    //  2) User hasn't enabled DoH explicitly
-    //  3) User hasn't seen notification before
-
-    // browser.experiments.doorhanger.onDoorhangerAccept.addListener(
-    //   (tabId) => {
-    //     console.log("Doorhanger accepted on tab", tabId);
-    //   }
-    // );
-    // browser.experiments.doorhanger.onDoorhangerDecline.addListener(
-    //   (tabId) => {
-    //     console.log("Doorhanger declined on tab", tabId);
-    //   }
-    // );
-    // await browser.experiments.doorhanger.show();
   },
 
   async main() {
@@ -172,7 +177,46 @@ const rollout = {
 
     // Listen to the captive portal when it unlocks
     browser.captivePortal.onStateChanged.addListener(this.onReady);
-  }
+  },
+   
+  async onReady(details) {
+    // Only proceed if we're not behind a captive portal
+    if ((details.state !== "unlocked_portal") && 
+        (details.state !== "not_captive")) {
+      return;
+    }
+  
+    // Run startup heuristics to determine if DoH should be disabled 
+    let decision = await this.heuristics("startup");
+    let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
+    if (decision === "disable_doh") {
+      await stateManager.setState("disabled");
+      await stateManager.rememberTRRMode();
+
+    // If the heuristics say to enable DoH, determine if the doorhanger 
+    // should be shown
+    } else if (shouldShowDoorhanger) {
+      console.log("Woof");
+      browser.experiments.doorhanger.onDoorhangerAccept.addListener(
+        this.doorhangerAcceptListener
+      );
+      browser.experiments.doorhanger.onDoorhangerDecline.addListener(
+        this.doorhangerDeclineListener
+      );
+      await browser.experiments.doorhanger.show();
+
+    // If the doorhanger doesn't need to be shown and the heuristics 
+    // say to enable DoH, enable it
+    } else {
+      await stateManager.setState("enabled");
+      await stateManager.rememberTRRMode();
+    }
+
+    // Listen for network change events to run heuristics again
+    browser.experiments.netChange.onConnectionChanged.addListener(
+      this.netChangeListener
+    );
+  },
 };
 
 
