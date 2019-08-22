@@ -194,8 +194,10 @@ const rollout = {
   },
 
   async main() {
-    // Enable the pref manager
+    // Enable the pref manager and set the state to "loaded".
+    // This state will not enable DoH. It just signals that the addon has been loaded.
     await stateManager.setSetting("trr-active");
+    await stateManager.setState("loaded");
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
