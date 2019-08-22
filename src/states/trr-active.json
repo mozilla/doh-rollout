@@ -16,7 +16,7 @@
     },
     "enabled": {
       "id": 1,
-      "_comment": "User has been presented with disclosure message",
+      "_comment": "DoH has been enabled automatically",
       "prefs": {
       },
       "persistPrefs": {
@@ -27,40 +27,40 @@
     },
     "UIDisabled": {
       "id": -1,
-      "_comment": "User saw disclosure and disabled the experiment",
+      "_comment": "User saw doorhanger and clicked No Thanks",
       "prefs": {
       },
       "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
-        "network.trr.mode": 5,
+        "network.trr.mode": 0,
         "network.trr.disable-ECS": true
       }
     },
     "uninstalled": {
       "id": -2,
-      "_comment": "Addon was removed other than disabled. This is the fallback also when an addon uninstall happens and the current state isn't a negative value.",
+      "_comment": "Addon was somehow uninstalled",
       "prefs": {
       },
       "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
-        "network.trr.mode": 5,
+        "network.trr.mode": 0,
         "network.trr.disable-ECS": true
       }
     },
     "disabled": {
       "id": -3,
-      "_comment": "Addon was disabled, probably through about:addons. Exemptions include other minus states, if the user saw the banner and clicked ok they will end with -4 even on disable.",
+      "_comment": "DoH has been disabled automatically, i.e. through heuristics",
       "prefs": {
       },
       "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
-        "network.trr.mode": 5,
+        "network.trr.mode": 0,
         "network.trr.disable-ECS": true
       }
     },
     "UIOk": {
       "id": -4,
-      "_comment": "User saw disclosure and clicked OK",
+      "_comment": "User saw doorhanger and clicked OK",
       "prefs": {
       },
       "persistPrefs": {
@@ -71,7 +71,7 @@
     },
     "UITimeout": {
       "id": -5,
-      "_comment": "User saw disclosure and did nothing by the time the browser closed",
+      "_comment": "User saw doorhanger and did nothing by the time the browser closed",
       "prefs": {
       },
       "persistPrefs": {
