@@ -33,9 +33,9 @@ const heuristicsManager = {
     });
   },
 
-  sendHeuristicsPing(decision, heuristicsResults) {
+  sendHeuristicsPing(decision, results) {
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
-                                   decision, heuristicsResults);
+                                   decision, results);
   },
 
   sendDoorhangerPing(reason) {

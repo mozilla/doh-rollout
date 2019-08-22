@@ -53,7 +53,7 @@ const stateManager = {
   },
 
   async rememberTRRMode() {
-    let curMode = await browser.experiments.settings.getUserPref("network.trr.mode", -1);
+    let curMode = await browser.experiments.settings.getUserPref("network.trr.mode", 0);
     console.log("Saving current trr mode:", curMode);
     await browser.experiments.settings.setPref("doh-rollout.previous.trr.mode", curMode, "int");
   },
@@ -145,10 +145,6 @@ const rollout = {
   },
 
   async netChangeListener(reason) {
-    if (reason !== "changed") {
-      return;
-    }
-
     // Possible race condition between multiple notifications?
     let curTime = new Date().getTime() / 1000;
     let timePassed = curTime - notificationTime;
@@ -159,7 +155,7 @@ const rollout = {
     notificationTime = curTime;
 
     // Run heuristics to determine if DoH should be disabled
-    let decision = await this.heuristics("netChange");
+    let decision = await rollout.heuristics("netChange");
     if (decision === "disable_doh") {
       await stateManager.setState("disabled"); 
       await stateManager.rememberTRRMode();
@@ -171,10 +167,10 @@ const rollout = {
 
   async heuristics(evaluateReason) {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
-    let heuristics = await runHeuristics();
+    let results = await runHeuristics();
 
     // Check if DoH should be disabled
-    let disablingDoh = Object.values(heuristics).some(item => item === "disable_doh");
+    let disablingDoh = Object.values(results).some(item => item === "disable_doh");
     let decision;
     if (disablingDoh) {
       decision = "disable_doh";
@@ -184,8 +180,8 @@ const rollout = {
     console.log("Heuristics decision on " + evaluateReason + ": " + decision);
 
     // Send Telemetry on results of heuristics
-    heuristics.evaluateReason = evaluateReason;
-    browser.experiments.heuristics.sendHeuristicsPing(decision, heuristics);
+    results.evaluateReason = evaluateReason;
+    browser.experiments.heuristics.sendHeuristicsPing(decision, results);
     return decision;
   },
 
