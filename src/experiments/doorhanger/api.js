@@ -55,11 +55,10 @@ class DoorhangerEventEmitter extends EventEmitter {
     ];
 
     const options = {
+      timeout: Date.now() + 900000,
       hideClose: true,
       persistent: true,
       autofocus: true,
-      timeout: 15000,
-      //anchorID: "PanelUI-menu-button",
       name: "More secure, encrypted DNS lookups",
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
       learnMoreURL: "https://duckduckgo.com",
