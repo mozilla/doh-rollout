@@ -61,7 +61,7 @@ class DoorhangerEventEmitter extends EventEmitter {
       autofocus: true,
       name: "More secure, encrypted DNS lookups",
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
-      learnMoreURL: "https://duckduckgo.com",
+      learnMoreURL: "https://support.mozilla.org/en-US/kb/firefox-dns-over-https"
     };
     recentWindow.PopupNotifications.show(browser, "doh-first-time", "<> Firefox now sends your DNS lookups over an encrypted connection provided by a trusted partner. This helps protect against phishing, malware, and surveillance.", null, primaryAction, secondaryActions, options);
   }
