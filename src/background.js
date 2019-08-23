@@ -78,24 +78,42 @@ const stateManager = {
       decision, "string");
   },
 
+  async rememberDisableHeuristics() {
+    console.log("Remembering to never run heuristics again");
+    await browser.experiments.settings.setPref("doh-rollout.disable-heuristics",
+      true, "bool");
+  },
+
   async shouldRunHeuristics() {
     let prevMode = await browser.experiments.settings.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
     let curMode = await browser.experiments.settings.getUserPref(
       "network.trr.mode", 0);
+    let disableHeuristics = await browser.experiments.settings.getUserPref(
+      "doh-rollout.disable-heuristics", false);
     console.log("Comparing previous trr mode to current mode:", 
       prevMode, curMode);
 
     // Don't run heuristics if:
-    //  1) previous doesn't mode equals current mode, i.e. user overrode our changes
+    //  1) Previous doesn't mode equals current mode, i.e. user overrode our changes
     //  2) TRR mode equals 5, i.e. user clicked "No" on doorhanger
     //  3) TRR mode equuls 3, i.e. user enabled "strictly on" for DoH
+    //  4) They've been disabled in the past for the reasons listed above
     //
     // In other words, if the user has made their own decision for DoH,
-    // then we want to respect that
-    if ((prevMode !== curMode) ||
-        (curMode === 5) ||
-        (curMode === 3)) {
+    // then we want to respect that and never run the heuristics again
+    //
+    // TODO: Replace rememberTRRMode() with setState(), 
+    // passing a state that indicates user's choice, 
+    // e.g. "user_disabled" or "user_enabled"
+    if (disableHeuristics) {
+      await stateManager.rememberTRRMode();
+      return false;
+    } else if ((prevMode !== curMode) ||
+               (curMode === 5) ||
+               (curMode === 3)) {
+      await stateManager.rememberDisableHeuristics();
+      await stateManager.rememberTRRMode();
       return false;
     }
     return true;
