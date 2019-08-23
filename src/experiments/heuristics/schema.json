@@ -66,12 +66,12 @@
         "async": false
       },
       {
-        "name": "sendDoorhangerPing",
+        "name": "sendStatePing",
         "type": "function",
-        "description": "Sends a ping for interactions with the doorhanger",
+        "description": "Sends a ping for the state of the addon",
         "parameters": [
           {
-            "name": "reason",
+            "name": "state",
             "type": "string"
           }
         ],

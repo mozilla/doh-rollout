@@ -24,23 +24,25 @@ const heuristicsManager = {
       }
     });
 
-    // Set up the Telemetry for the doorhanger
+    // Set up the Telemetry for the addon state 
     Services.telemetry.registerEvents("doh", {
-      "doorhanger": {
-        methods: ["doorhanger"],
-        objects: ["enable_button", "disable_button", "timeout"]
+      "state": {
+        methods: ["state"],
+        objects: ["loaded", "enabled", "disabled", "uninstalled",
+                  "UIOk", "UIDisabled", "UITimeout"]
       }
     });
   },
 
   sendHeuristicsPing(decision, results) {
+    console.log("Sending a heuristics ping", decision, results);
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
                                    decision, results);
   },
 
-  sendDoorhangerPing(reason) {
-    console.log("Sending a doorhanger ping");
-    Services.telemetry.recordEvent("doh", "doorhanger", reason, "null");
+  sendStatePing(state) {
+    console.log("Sending an addon state ping", state);
+    Services.telemetry.recordEvent("doh", "state", state, "null");
   },
 
   async checkEnterprisePolicies() {
@@ -88,8 +90,8 @@ var heuristics = class heuristics extends ExtensionAPI {
             heuristicsManager.sendHeuristicsPing(decision, results); 
           },
 
-          sendDoorhangerPing(reason) {
-            heuristicsManager.sendDoorhangerPing(reason);
+          sendStatePing(state) {
+            heuristicsManager.sendStatePing(state);
           },
 
           async checkEnterprisePolicies() {

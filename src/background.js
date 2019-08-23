@@ -35,8 +35,9 @@ const stateManager = {
     return await browser.experiments.settings.get(this.settingName) || null;
   },
 
-  async setState(stateKey) {
-    await browser.experiments.settings.set(this.settingName, stateKey);
+  async setState(state) {
+    await browser.experiments.settings.set(this.settingName, state);
+    await browser.experiments.heuristics.sendStatePing(state);
   },
 
   /* settingName impacts the active states file we will be getting:
@@ -102,17 +103,14 @@ const stateManager = {
   async shouldShowDoorhanger() {
     let doorhangerShown = await browser.experiments.settings.getUserPref(
       "doh-rollout.doorhanger-shown", false);
-    let doorhangerDecision = await browser.experiments.settings.getUserPref(
-      "doh-rollout.doorhanger-decision", "timeout");
     let doorhangerPingSent = await browser.experiments.settings.getUserPref(
       "doh-rollout.doorhanger-ping-sent", false);
 
-    // If we've shown the doorhanger but haven't sent the ping, do it now
+    // If we've shown the doorhanger but haven't sent the ping,
+    // we assume that the doorhanger timed out
     if (doorhangerShown && !(doorhangerPingSent)) {
       await stateManager.setState("UITimeout");
-      await stateManager.rememberTRRMode();
-      await stateManager.rememberDoorhangerDecision("timeout");
-      browser.experiments.heuristics.sendDoorhangerPing(doorhangerDecision);
+      await stateManager.rememberDoorhangerDecision("UITimeout");
       await stateManager.rememberDoorhangerPingSent();
     }
 
@@ -129,18 +127,14 @@ const rollout = {
   async doorhangerAcceptListener(tabId) {
     console.log("Doorhanger accepted on tab", tabId);
     await stateManager.setState("UIOk");
-    await stateManager.rememberTRRMode();
-    await stateManager.rememberDoorhangerDecision("enable_button");
-    browser.experiments.heuristics.sendDoorhangerPing("enable_button");
+    await stateManager.rememberDoorhangerDecision("UIOk");
     await stateManager.rememberDoorhangerPingSent();
   },
 
   async doorhangerDeclineListener(tabId) {
     console.log("Doorhanger declined on tab", tabId);
     await stateManager.setState("UIDisabled");
-    await stateManager.rememberTRRMode();
-    await stateManager.rememberDoorhangerDecision("disable_button");
-    browser.experiments.heuristics.sendDoorhangerPing("disable_button");
+    await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
   },
 
@@ -158,10 +152,8 @@ const rollout = {
     let decision = await rollout.heuristics("netChange");
     if (decision === "disable_doh") {
       await stateManager.setState("disabled"); 
-      await stateManager.rememberTRRMode();
     } else {
       await stateManager.setState("enabled");
-      await stateManager.rememberTRRMode();
     }
   },
 
@@ -186,6 +178,12 @@ const rollout = {
   },
 
   async init() {
+    // Register the events for sending pings
+    browser.experiments.heuristics.setupTelemetry();
+    
+    // Enable the pref manager
+    await stateManager.setSetting("trr-active");
+
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
@@ -194,14 +192,6 @@ const rollout = {
   },
 
   async main() {
-    // Enable the pref manager and set the state to "loaded".
-    // This state will not enable DoH. It just signals that the addon has been loaded.
-    await stateManager.setSetting("trr-active");
-    await stateManager.setState("loaded");
-
-    // Register the events for sending pings
-    browser.experiments.heuristics.setupTelemetry();
-
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
@@ -226,7 +216,6 @@ const rollout = {
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
     if (decision === "disable_doh") {
       await stateManager.setState("disabled");
-      await stateManager.rememberTRRMode();
 
     // If the heuristics say to enable DoH, determine if the doorhanger 
     // should be shown
@@ -244,12 +233,17 @@ const rollout = {
     // say to enable DoH, enable it
     } else {
       await stateManager.setState("enabled");
-      await stateManager.rememberTRRMode();
     }
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(
-      this.netChangeListener
+      async (reason) => {
+        // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+        let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+        if (shouldRunHeuristics) {
+          await rollout.netChangeListener(reason);
+        }
+      }
     );
   },
 };
