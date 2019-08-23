@@ -211,6 +211,9 @@ const rollout = {
   },
 
   async main() {
+    // Listen to the captive portal when it unlocks
+    browser.captivePortal.onStateChanged.addListener(this.onReady);
+
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
@@ -219,8 +222,6 @@ const rollout = {
       await this.onReady({state: captiveState});
     }
 
-    // Listen to the captive portal when it unlocks
-    browser.captivePortal.onStateChanged.addListener(this.onReady);
   },
    
   async onReady(details) {
