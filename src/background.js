@@ -38,6 +38,7 @@ const stateManager = {
   async setState(state) {
     await browser.experiments.settings.set(this.settingName, state);
     await browser.experiments.heuristics.sendStatePing(state);
+    await stateManager.rememberTRRMode();
   },
 
   /* settingName impacts the active states file we will be getting:
