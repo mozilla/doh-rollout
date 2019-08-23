@@ -202,7 +202,7 @@ const rollout = {
   async init() {
     // Check the pref set by Normandy for running the addon
     let runAddon = await browser.experiments.settings.getUserPref(
-      "doh-rollout.enable-addon", false);
+      "doh-rollout.enabled", false);
     if (!runAddon) {
       console.log("Normandy pref is false; not running the addon");
       return;
