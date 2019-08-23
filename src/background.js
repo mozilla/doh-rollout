@@ -197,6 +197,14 @@ const rollout = {
   },
 
   async init() {
+    // Check the pref set by Normandy for running the addon
+    let runAddon = await browser.experiments.settings.getUserPref(
+      "doh-rollout.enable-addon", false);
+    if (!runAddon) {
+      console.log("Normandy pref is false; not running the addon");
+      return;
+    }
+
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
     
