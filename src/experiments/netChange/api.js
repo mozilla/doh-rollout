@@ -36,8 +36,14 @@ var netChange = class netChange extends ExtensionAPI {
                   // The "changed" event sometimes fires when the connection 
                   // isn't quite up yet. We should wait before running the 
                   // heuristics to ensure the network is up.
-                  await sleep(10000);
-                  fire.async(data);
+                  await sleep(5000);
+  
+                  // After sleeping, check the connection again
+                  if (gNetworkLinkService.linkStatusKnown &&
+                      gNetworkLinkService.isLinkUp &&
+                      data === "changed") {
+                    fire.async(data);
+                  }
                 }
               };
               Services.obs.addObserver(observer, "network:link-status-changed");
