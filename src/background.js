@@ -105,7 +105,10 @@ const stateManager = {
     //
     // TODO: Replace rememberTRRMode() with setState(), 
     // passing a state that indicates user's choice, 
-    // e.g. "user_disabled" or "user_enabled"
+    // e.g. "user_disabled" or "user_enabled".
+    //
+    // I'm not sure how to set a state that doens't reset the prefs 
+    // to default values, though.
     if (disableHeuristics) {
       await stateManager.rememberTRRMode();
       return false;
