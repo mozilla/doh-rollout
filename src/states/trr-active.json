@@ -32,7 +32,7 @@
       },
       "persistPrefs": {
         "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
-        "network.trr.mode": 0,
+        "network.trr.mode": 5,
         "network.trr.disable-ECS": true
       }
     },
@@ -42,9 +42,6 @@
       "prefs": {
       },
       "persistPrefs": {
-        "network.trr.uri": "https://mozilla.cloudflare-dns.com/dns-query",
-        "network.trr.mode": 0,
-        "network.trr.disable-ECS": true
       }
     },
     "disabled": {
