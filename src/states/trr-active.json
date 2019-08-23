@@ -68,7 +68,7 @@
     },
     "UITimeout": {
       "id": -5,
-      "_comment": "User saw doorhanger and did nothing by the time the browser closed",
+      "_comment": "User saw doorhanger and did nothing for 15 minutes or by the time the browser closed",
       "prefs": {
       },
       "persistPrefs": {
