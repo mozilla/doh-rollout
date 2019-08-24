@@ -42,7 +42,7 @@ const stateManager = {
   },
 
   /* settingName impacts the active states file we will be getting:
-     trr-active, trr-study
+     trr-active
    */
   async setSetting(settingName) {
     stateManager.settingName = settingName;
@@ -217,25 +217,28 @@ const rollout = {
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
-      await this.main();
+      await rollout.main();
     }
   },
 
   async main() {
     // Listen to the captive portal when it unlocks
-    browser.captivePortal.onStateChanged.addListener(this.onReady);
+    browser.captivePortal.onStateChanged.addListener(rollout.onReady);
 
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
     if ((captiveState === "unlocked_portal") || 
         (captiveState === "not_captive")) {
-      await this.onReady({state: captiveState});
+      await rollout.onReady({state: captiveState});
     }
 
   },
    
   async onReady(details) {
+    // Now that we're here, stop listening to the captive portal 
+    browser.captivePortal.onStateChanged.removeListener(rollout.onReady);
+
     // Only proceed if we're not behind a captive portal
     if ((details.state !== "unlocked_portal") && 
         (details.state !== "not_captive")) {
@@ -243,7 +246,7 @@ const rollout = {
     }
 
     // Run startup heuristics to determine if DoH should be disabled 
-    let decision = await this.heuristics("startup");
+    let decision = await rollout.heuristics("startup");
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
     if (decision === "disable_doh") {
       await stateManager.setState("disabled");
@@ -252,10 +255,10 @@ const rollout = {
     // should be shown
     } else if (shouldShowDoorhanger) {
       browser.experiments.doorhanger.onDoorhangerAccept.addListener(
-        this.doorhangerAcceptListener
+        rollout.doorhangerAcceptListener
       );
       browser.experiments.doorhanger.onDoorhangerDecline.addListener(
-        this.doorhangerDeclineListener
+        rollout.doorhangerDeclineListener
       );
       await browser.experiments.doorhanger.show();
       await stateManager.rememberDoorhangerShown();
@@ -266,13 +269,20 @@ const rollout = {
       await stateManager.setState("enabled");
     }
 
+
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(
       async (reason) => {
         // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
         let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
         if (shouldRunHeuristics) {
-          await rollout.netChangeListener(reason);
+          // Before we run the heuristics, make sure we're not behind a captive portal
+          let captiveState = await browser.captivePortal.getState();
+          console.log("Captive state:", captiveState);
+          if ((captiveState === "unlocked_portal") || 
+              (captiveState === "not_captive")) {
+            await rollout.netChangeListener(reason);
+          }
         }
       }
     );
