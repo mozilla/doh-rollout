@@ -30,7 +30,7 @@ function getMostRecentBrowserWindow() {
 
 
 class DoorhangerEventEmitter extends EventEmitter {
-  async emitShow(variationName) {
+  async emitShow({name, text, okLabel, okAccessKey, cancelLabel, cancelAccessKey}) {
     const self = this;
     const recentWindow = getMostRecentBrowserWindow();
     const browser = recentWindow.gBrowser.selectedBrowser;
@@ -38,32 +38,33 @@ class DoorhangerEventEmitter extends EventEmitter {
 
     const primaryAction =  {
       disableHighlight: false,
-      label: "OK, Got It",
-      accessKey: "f",
+      label: okLabel,
+      accessKey: okAccessKey,
       callback: () => {
         self.emit("doorhanger-accept", tabId);
       },
     };
     const secondaryActions =  [
       {
-        label: "Disable Protection",
-        accessKey: "d",
+        label: cancelLabel,
+        accessKey: cancelAccessKey,
         callback: () => {
           self.emit("doorhanger-decline", tabId);
         },
       },
     ];
 
+    let learnMoreURL = Services.urlFormatter.formatURL("https://support.mozilla.org/%LOCALE%/kb/firefox-dns-over-https");
     const options = {
       timeout: Date.now() + 900000,
       hideClose: true,
       persistent: true,
       autofocus: true,
-      name: "More secure, encrypted DNS lookups",
+      name,
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
-      learnMoreURL: "https://support.mozilla.org/en-US/kb/firefox-dns-over-https"
+      learnMoreURL,
     };
-    recentWindow.PopupNotifications.show(browser, "doh-first-time", "<> Firefox now sends your DNS lookups over an encrypted connection provided by a trusted partner. This helps protect against phishing, malware, and surveillance.", null, primaryAction, secondaryActions, options);
+    recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
   }
 }
 
@@ -74,8 +75,8 @@ var doorhanger = class doorhanger extends ExtensionAPI {
     return {
       experiments: {
         doorhanger: {
-          async show() {
-            await doorhangerEventEmitter.emitShow();
+          async show(properties) {
+            await doorhangerEventEmitter.emitShow(properties);
           },
           onDoorhangerAccept: new EventManager({
             context,

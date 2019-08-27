@@ -260,7 +260,15 @@ const rollout = {
       browser.experiments.doorhanger.onDoorhangerDecline.addListener(
         rollout.doorhangerDeclineListener
       );
-      await browser.experiments.doorhanger.show();
+      await browser.experiments.doorhanger.show({
+        name: browser.i18n.getMessage("doorhangerName"),
+        text: "<> " + browser.i18n.getMessage("doorhangerText"),
+        okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
+        okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
+        cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
+        cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
+      });
+
       await stateManager.rememberDoorhangerShown();
 
     // If the doorhanger doesn't need to be shown and the heuristics 
