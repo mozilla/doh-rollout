@@ -1,0 +1,20 @@
+{
+  "doorhangerName": {
+    "message": "DNS 查询，加密更安全", 
+    "description": "Bold title is shown to ask the user if they wish to disable DoH"
+  }, 
+  "doorhangerButtonOk": {
+    "message": "我知道了", 
+    "description": "When the user clicks this they are confirming they know DoH is enabled"
+  }, 
+  "doorhangerButtonOkAccessKey": {
+    "message": "O"
+  }, 
+  "doorhangerButtonCancel": {
+    "message": "禁用保护", 
+    "description": "Pressing this button disables DoH"
+  }, 
+  "doorhangerButtonCancelAccessKey": {
+    "message": "D"
+  }
+}
