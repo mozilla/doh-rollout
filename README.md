@@ -1,7 +1,6 @@
-## HTTP DNS
+## DoH Roll-Out
 
-This is a test WebExtension + Experimental API to enable HTTP DNS in the browser, for
-testing purposes.
+This is a test WebExtension + Experimental API to enable DNS over HTTP for release to general users.
 
 ## How to install WebExtension
 
@@ -21,22 +20,9 @@ OR
    - Select `manifest.json`
    - Select `src/web-ext-artifacts/dns_over_https-${VERSION}.zip`
 
-You should see a new entry in the list of extensions titled "HTTP DNS".
+You should see a new entry in the list of extensions titled "DoH Roll-Out".
 
-# Telemetry
-
-The addon will enable DNS over HTTPS which will send timing statistics of trr resolving to Firefox. This won't include domains or specific information about the queries being used.
-
-The addon will also send usage telemetry about the state of the addon being install or removed using Shield telemetry.
-- When a user opts out of the banner shown a ping will be sent. ("UIDisabled" or "UIOk")
-- When a user disables or uninstalls the add-on, a ping will be sent ("disabled" or "uninstalled").
-- Existing Shield telemetry utils telemetry will be sent.
-- The variant of the study will be captured.
-
-# Configuring
-
-Setting "network.trr.experimentalPerfInterval" will change how often in seconds the addon does a telemetry request. We check roughly every minute to see if the last perf check was before this interval time.
-This is useful for debugging the telemetry from the addon.
+To see the banner enable "doh-rollout.enabled" in about:config
 
 ## How to read the states file
 
@@ -58,9 +44,3 @@ The preferences are managed by [states-trr.json](/src/states-trr.json) this is o
 
 - web-ext
 - Firefox 61+
-
-## TODO list
-
-- Document functions
-- Add tests for unset hidden prefs and public ones
-- Decide if pref setting should be synced across devices

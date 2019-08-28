@@ -1,7 +1,7 @@
 "use strict";
 
 /* exported settings */
-/* global Components, ExtensionAPI, Services */
+/* global Components, ExtensionAPI, ExtensionCommon, Services */
 let Cu2 = Components.utils;
 Cu2.import("resource://gre/modules/Services.jsm");
 Cu2.import("resource://gre/modules/ExtensionSettingsStore.jsm");
@@ -175,6 +175,7 @@ function readJSON(url) {
 
 var settings = class settings extends ExtensionAPI {
   getAPI(context) {
+    const EventManager = ExtensionCommon.EventManager;
     const {extension} = context;
     extension.callOnClose({
       close: () => {
@@ -233,7 +234,21 @@ var settings = class settings extends ExtensionAPI {
           },
           async getUserPref(name, value) {
             return prefManager.getUserPref(name, value);
-          }
+          },
+
+          onPrefChanged: new EventManager({
+            context,
+            name: "settings.onPrefChanged",
+            register: fire => {
+              let observer = _ => {
+                fire.async();
+              };
+              Services.prefs.addObserver("doh-rollout.enabled", observer);
+              return () => {
+                Services.prefs.removeObserver("doh-rollout.enabled", observer);
+              };
+            }
+          }).api(),
         },
       },
     };
