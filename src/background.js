@@ -297,5 +297,8 @@ const rollout = {
   },
 };
 
-
+// Observe the enable pref as Normandy might fire second
+browser.experiments.settings.onPrefChanged.addListener(async _ => {
+  rollout.init();
+});
 rollout.init();
