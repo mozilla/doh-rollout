@@ -9,7 +9,21 @@
         "type": "function",
         "description": "Show the notification to the user.",
         "async": true,
-        "parameters": []
+        "parameters": [
+          {
+            "type": "object",
+            "name": "properties",
+            "description": "Text properties for the doorhanger",
+            "properties": {
+              "name": {"type": "string", "description": "Name of the doorhanger"},
+              "text": {"type": "string", "description": "Description in the doorhanger"},
+              "okLabel": {"type": "string"},
+              "okAccessKey": {"type": "string"},
+              "cancelLabel": {"type": "string"},
+              "cancelAccessKey": {"type": "string"}
+            }
+          }
+        ]
       }
     ],
     "events": [

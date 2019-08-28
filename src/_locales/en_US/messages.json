@@ -1,0 +1,34 @@
+{
+  "extensionName": {
+    "message": "DoH Roll-Out",
+    "description": "DNS over HTTPS add-on name for a gradual release of DoH"
+  },
+  "extensionDescription": {
+    "message": "Mozilla add-on that supports the roll-out of DoH"
+  },
+
+  "doorhangerName": {
+    "message": "More secure, encrypted DNS lookups",
+    "description": "Bold title is shown to ask the user if they wish to disable DoH"
+  },
+  "doorhangerText": {
+    "message": "Firefox now sends your DNS lookups over an encrypted connection provided by a trusted partner. This helps protect against phishing, malware, and surveillance.",
+    "description": "This text is shown to ask the user if they wish to disable DoH"
+  },
+
+  "doorhangerButtonOk": {
+    "message": "OK, Got It",
+    "description": "When the user clicks this they are confirming they know DoH is enabled"
+  },
+  "doorhangerButtonOkAccessKey": {
+    "message": "O"
+  },
+  "doorhangerButtonCancel": {
+    "message": "Disable Protection",
+    "description": "Pressing this button disables DoH"
+  },
+  "doorhangerButtonCancelAccessKey": {
+    "message": "D"
+  }
+
+}
