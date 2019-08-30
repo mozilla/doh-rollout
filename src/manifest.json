@@ -23,12 +23,12 @@
   },
 
   "experiment_apis": {
-    "settings": {
-      "schema": "experiments/settings/schema.json",
+    "preferences": {
+      "schema": "experiments/preferences/schema.json",
       "parent": {
         "scopes": ["addon_parent"],
-        "script": "experiments/settings/api.js",
-        "paths": [["experiments", "settings"]]
+        "script": "experiments/preferences/api.js",
+        "paths": [["experiments", "preferences"]]
       }
     },
     "heuristics": {
