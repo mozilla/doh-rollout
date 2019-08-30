@@ -30,9 +30,7 @@ var netChange = class netChange extends ExtensionAPI {
             name: "netChange.onConnectionChanged",
             register: fire => {
               let observer = async (subject, topic, data) => {
-                if (gNetworkLinkService.linkStatusKnown &&
-                    gNetworkLinkService.isLinkUp &&
-                    data === "changed") {
+                if (data === "changed") {
                   // The "changed" event sometimes fires when the connection 
                   // isn't quite up yet. We should wait before running the 
                   // heuristics to ensure the network is up.
