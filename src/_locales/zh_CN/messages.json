@@ -7,7 +7,7 @@
     "message": "附加组件：Mozilla 之 DoH 降世"
   }, 
   "doorhangerName": {
-    "message": "DNS 查询，加密更安全", 
+    "message": "更安全、经加密的 DNS 查询", 
     "description": "Bold title is shown to ask the user if they wish to disable DoH"
   }, 
   "doorhangerText": {
