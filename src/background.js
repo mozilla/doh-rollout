@@ -3,93 +3,75 @@
 
 
 const stateManager = {
-  _settingName: null,
-  _captiveState: "unknown",
-
-
-  get captiveState() {
-    return this._captiveState;
-  },
-
-  set captiveState(captiveState) {
-    this._captiveState = captiveState;
-  },
-
-  get settingName() {
-    if (this._settingName === null) {
-      throw new Error("set setting not set");
-    } else {
-      return this._settingName;
-    }
-  },
-
-  set settingName(settingName) {
-    if (this._settingName === null) {
-      this._settingName = settingName;
-    } else {
-      throw new Error("already set setting");
-    }
-  },
-
-  async getState() {
-    return await browser.experiments.settings.get(this.settingName) || null;
-  },
-
   async setState(state) {
-    await browser.experiments.settings.set(this.settingName, state);
+    let prefs = {};
+    prefs["network.trr.uri"] = "https://mozilla.cloudflare-dns.com/dns-query";
+    prefs["network.trr.disable-ECS"] = true;
+
+    switch (state) {
+      case "uninstalled":
+        break;
+      case "disabled":
+        prefs["network.trr.mode"] = 0;
+        break;
+      case "UIOk":
+      case "UITimeout":
+      case "enabled":
+        prefs["network.trr.mode"] = 2;
+        break;
+      case "UIDisabled":
+        prefs["network.trr.mode"] = 5;
+        break;
+    }
+    for (let pref in prefs) {
+      let type = "string";
+      if (typeof prefs[pref] == "number") {
+        type = "int";
+      } else if (typeof prefs[pref] == "boolean") {
+        type = "bool";
+      }
+      await browser.experiments.preferences.setPref(pref, prefs[pref], type);
+    }
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
   },
 
-  /* settingName impacts the active states file we will be getting:
-     trr-active
-   */
-  async setSetting(settingName) {
-    stateManager.settingName = settingName;
-    return browser.experiments.settings.add(this.settingName);
-  },
-
-  // Clear out settings
-  async clear(stateKey = null) {
-    browser.experiments.settings.clear(stateKey);
-  },
-
   async rememberTRRMode() {
-    let curMode = await browser.experiments.settings.getUserPref("network.trr.mode", 0);
+    let curMode = await browser.experiments.preferences.getUserPref("network.trr.mode", 0);
     console.log("Saving current trr mode:", curMode);
-    await browser.experiments.settings.setPref("doh-rollout.previous.trr.mode", curMode, "int");
+    await browser.experiments.preferences.setPref("doh-rollout.previous.trr.mode", curMode, "int");
   },
 
   async rememberDoorhangerShown() {
     console.log("Remembering that doorhanger has been shown");
-    await browser.experiments.settings.setPref("doh-rollout.doorhanger-shown", 
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-shown", 
       true, "bool");
   },
 
   async rememberDoorhangerPingSent() {
     console.log("Remembering that doorhanger ping has been sent");
-    await browser.experiments.settings.setPref("doh-rollout.doorhanger-ping-sent", 
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-ping-sent", 
       true, "bool");
   },
 
   async rememberDoorhangerDecision(decision) {
     console.log("Remember doorhanger decision:", decision);
-    await browser.experiments.settings.setPref("doh-rollout.doorhanger-decision", 
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-decision", 
       decision, "string");
   },
 
   async rememberDisableHeuristics() {
     console.log("Remembering to never run heuristics again");
-    await browser.experiments.settings.setPref("doh-rollout.disable-heuristics",
+    await browser.experiments.preferences.setPref("doh-rollout.disable-heuristics",
       true, "bool");
   },
 
   async shouldRunHeuristics() {
-    let prevMode = await browser.experiments.settings.getUserPref(
+    let prevMode = await browser.experiments.preferences.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
-    let curMode = await browser.experiments.settings.getUserPref(
+    let curMode = await browser.experiments.preferences.getUserPref(
       "network.trr.mode", 0);
-    let disableHeuristics = await browser.experiments.settings.getUserPref(
+    let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
     console.log("Comparing previous trr mode to current mode:", 
       prevMode, curMode);
@@ -102,13 +84,6 @@ const stateManager = {
     //
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that and never run the heuristics again
-    //
-    // TODO: Replace rememberTRRMode() with setState(), 
-    // passing a state that indicates user's choice, 
-    // e.g. "user_disabled" or "user_enabled".
-    //
-    // I'm not sure how to set a state that doens't reset the prefs 
-    // to default values, though.
     if (disableHeuristics) {
       await stateManager.rememberTRRMode();
       return false;
@@ -123,9 +98,9 @@ const stateManager = {
   },
 
   async shouldShowDoorhanger() {
-    let doorhangerShown = await browser.experiments.settings.getUserPref(
+    let doorhangerShown = await browser.experiments.preferences.getUserPref(
       "doh-rollout.doorhanger-shown", false);
-    let doorhangerPingSent = await browser.experiments.settings.getUserPref(
+    let doorhangerPingSent = await browser.experiments.preferences.getUserPref(
       "doh-rollout.doorhanger-ping-sent", false);
 
     // If we've shown the doorhanger but haven't sent the ping,
@@ -142,8 +117,7 @@ const stateManager = {
 };
 
 
-var notificationTime = new Date().getTime() / 1000;
-
+let notificationTime = new Date().getTime() / 1000;
 
 const rollout = {
   async doorhangerAcceptListener(tabId) {
@@ -201,7 +175,7 @@ const rollout = {
 
   async init() {
     // Check the pref set by Normandy for running the addon
-    let runAddon = await browser.experiments.settings.getUserPref(
+    let runAddon = await browser.experiments.preferences.getUserPref(
       "doh-rollout.enabled", false);
     if (!runAddon) {
       console.log("Normandy pref is false; not running the addon");
@@ -211,9 +185,6 @@ const rollout = {
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
     
-    // Enable the pref manager
-    await stateManager.setSetting("trr-active");
-
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
@@ -298,7 +269,7 @@ const rollout = {
 };
 
 // Observe the enable pref as Normandy might fire second
-browser.experiments.settings.onPrefChanged.addListener(async _ => {
+browser.experiments.preferences.onPrefChanged.addListener(async _ => {
   rollout.init();
 });
 rollout.init();

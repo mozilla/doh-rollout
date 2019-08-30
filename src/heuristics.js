@@ -133,7 +133,7 @@ async function globalCanary() {
 
 
 async function modifiedRoots() {
-  let rootsEnabled = await browser.experiments.settings.getUserPref(
+  let rootsEnabled = await browser.experiments.preferences.getUserPref(
     "security.enterprise_roots.enabled", false);
   if (rootsEnabled) {
     return "disable_doh";

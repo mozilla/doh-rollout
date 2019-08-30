@@ -1,6 +1,6 @@
 [
   {
-    "namespace": "experiments.settings",
+    "namespace": "experiments.preferences",
     "description": "Manage prefs for an addon",
     "types": [
       {
@@ -29,35 +29,7 @@
       }
     ],
     "functions": [
-      {
-        "name": "getStrings",
-        "type": "function",
-        "description": "Gets the brand strings",
-        "parameters": [
-          {
-            "type": "array",
-            "items": { "type": "string" }
-          }
-        ],
-        "async": true
-      },
-      {
-        "name": "hasModifiedPrerequisites",
-        "type": "function",
-        "description": "Returns a bool of if the user has modified the agreed prereq prefs",
-        "parameters": [
-        ],
-        "async": true
-      },
-      {
-        "name": "prerequisites",
-        "type": "function",
-        "description": "Returns an object of user prereq prefs",
-        "parameters": [
-        ],
-        "async": true
-      },
-      {
+            {
         "name": "get",
         "type": "function",
         "description": "Gets the value of the preference manager",
