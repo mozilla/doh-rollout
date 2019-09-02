@@ -1,0 +1,31 @@
+{
+  "extensionName": {
+    "message": "Lanzamiento de DoH", 
+    "description": "DNS over HTTPS add-on name for a gradual release of DoH"
+  }, 
+  "extensionDescription": {
+    "message": "Componente adicional hecho por Mozilla para el lanzamiento de DoH"
+  }, 
+  "doorhangerName": {
+    "message": "Búsquedas de DNS cifradas y más seguras", 
+    "description": "Bold title is shown to ask the user if they wish to disable DoH"
+  }, 
+  "doorhangerText": {
+    "message": "Firefox ahora cifrará y enrutará las búsquedas de DNS siempre que sea posible a un socio de confianza, a menos que tu dispositivo o red use una configuración de DNS personalizada. Esto ayuda a proteger contra el phishing, el malware y la vigilancia.", 
+    "description": "This text is shown to ask the user if they wish to disable DoH"
+  }, 
+  "doorhangerButtonOk": {
+    "message": "Ok, lo tengo", 
+    "description": "When the user clicks this they are confirming they know DoH is enabled"
+  }, 
+  "doorhangerButtonOkAccessKey": {
+    "message": "O"
+  }, 
+  "doorhangerButtonCancel": {
+    "message": "Deshabilitar protección", 
+    "description": "Pressing this button disables DoH"
+  }, 
+  "doorhangerButtonCancelAccessKey": {
+    "message": "D"
+  }
+}
