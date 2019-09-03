@@ -4,7 +4,7 @@
     "description": "DNS over HTTPS add-on name for a gradual release of DoH"
   }, 
   "extensionDescription": {
-    "message": "Componente adicional hecho por Mozilla para el lanzamiento de DoH"
+    "message": "Complemento de Mozilla para el lanzamiento de DoH"
   }, 
   "doorhangerName": {
     "message": "Búsquedas de DNS cifradas y más seguras", 
@@ -15,7 +15,7 @@
     "description": "This text is shown to ask the user if they wish to disable DoH"
   }, 
   "doorhangerButtonOk": {
-    "message": "Ok, lo tengo", 
+    "message": "OK, entendido", 
     "description": "When the user clicks this they are confirming they know DoH is enabled"
   }, 
   "doorhangerButtonOkAccessKey": {
