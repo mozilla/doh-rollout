@@ -1,0 +1,16 @@
+{
+  "doorhangerButtonOk": {
+    "message": "J’ai compris", 
+    "description": "When the user clicks this they are confirming they know DoH is enabled"
+  }, 
+  "doorhangerButtonOkAccessKey": {
+    "message": "c"
+  }, 
+  "doorhangerButtonCancel": {
+    "message": "Désactiver la protection", 
+    "description": "Pressing this button disables DoH"
+  }, 
+  "doorhangerButtonCancelAccessKey": {
+    "message": "D"
+  }
+}
