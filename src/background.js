@@ -1,26 +1,29 @@
 "use strict";
 /* global browser, runHeuristics */
 
+const TRR_URI_PREF = "network.trr.uri";
+const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
+const TRR_MODE_PREF = "network.trr.mode";
 
 const stateManager = {
   async setState(state) {
     let prefs = {};
-    prefs["network.trr.uri"] = "https://mozilla.cloudflare-dns.com/dns-query";
-    prefs["network.trr.disable-ECS"] = true;
+    prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
+    prefs[TRR_DISABLE_ECS_PREF] = true;
 
     switch (state) {
       case "uninstalled":
         break;
       case "disabled":
-        prefs["network.trr.mode"] = 0;
+        prefs[TRR_MODE_PREF] = 0;
         break;
       case "UIOk":
       case "UITimeout":
       case "enabled":
-        prefs["network.trr.mode"] = 2;
+        prefs[TRR_MODE_PREF] = 2;
         break;
       case "UIDisabled":
-        prefs["network.trr.mode"] = 5;
+        prefs[TRR_MODE_PREF] = 5;
         break;
     }
     for (let pref in prefs) {
@@ -37,7 +40,7 @@ const stateManager = {
   },
 
   async rememberTRRMode() {
-    let curMode = await browser.experiments.preferences.getUserPref("network.trr.mode", 0);
+    let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
     console.log("Saving current trr mode:", curMode);
     await browser.experiments.preferences.setPref("doh-rollout.previous.trr.mode", curMode, "int");
   },
@@ -70,7 +73,7 @@ const stateManager = {
     let prevMode = await browser.experiments.preferences.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
     let curMode = await browser.experiments.preferences.getUserPref(
-      "network.trr.mode", 0);
+      TRR_MODE_PREF, 0);
     let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
     console.log("Comparing previous trr mode to current mode:", 
