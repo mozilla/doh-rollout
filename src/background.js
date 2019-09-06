@@ -1,6 +1,12 @@
 "use strict";
 /* global browser, runHeuristics */
 
+function log() {
+  if (false) {
+    console.log(...arguments);
+  }
+}
+
 const TRR_URI_PREF = "network.trr.uri";
 const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
 const TRR_MODE_PREF = "network.trr.mode";
@@ -18,19 +24,19 @@ const stateManager = {
     prefs[TRR_DISABLE_ECS_PREF] = true;
 
     switch (state) {
-      case "uninstalled":
-        break;
-      case "disabled":
-        prefs[TRR_MODE_PREF] = 0;
-        break;
-      case "UIOk":
-      case "UITimeout":
-      case "enabled":
-        prefs[TRR_MODE_PREF] = 2;
-        break;
-      case "UIDisabled":
-        prefs[TRR_MODE_PREF] = 5;
-        break;
+    case "uninstalled":
+      break;
+    case "disabled":
+      prefs[TRR_MODE_PREF] = 0;
+      break;
+    case "UIOk":
+    case "UITimeout":
+    case "enabled":
+      prefs[TRR_MODE_PREF] = 2;
+      break;
+    case "UIDisabled":
+      prefs[TRR_MODE_PREF] = 5;
+      break;
     }
     for (let pref in prefs) {
       await this.setPref(pref, prefs[pref]);
@@ -52,33 +58,33 @@ const stateManager = {
 
     let currentPrefValue = await browser.experiments.preferences.getUserPref(prefName, defaultValue);
     await browser.storage.local.set({[prefName]: currentPrefValue});
-    console.log("setting pref", {prefName, value, currentPrefValue, type});
+    log("setting pref", {prefName, value, currentPrefValue, type});
     await browser.experiments.preferences.setPref(prefName, value, type);
   },
 
   async rememberTRRMode() {
     let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
-    console.log("Saving current trr mode:", curMode);
+    log("Saving current trr mode:", curMode);
     await this.setPref("doh-rollout.previous.trr.mode", curMode);
   },
 
   async rememberDoorhangerShown() {
-    console.log("Remembering that doorhanger has been shown");
+    log("Remembering that doorhanger has been shown");
     await this.setPref("doh-rollout.doorhanger-shown", true);
   },
 
   async rememberDoorhangerPingSent() {
-    console.log("Remembering that doorhanger ping has been sent");
+    log("Remembering that doorhanger ping has been sent");
     await this.setPref("doh-rollout.doorhanger-ping-sent", true);
   },
 
   async rememberDoorhangerDecision(decision) {
-    console.log("Remember doorhanger decision:", decision);
+    log("Remember doorhanger decision:", decision);
     await this.setPref("doh-rollout.doorhanger-decision", decision);
   },
 
   async rememberDisableHeuristics() {
-    console.log("Remembering to never run heuristics again");
+    log("Remembering to never run heuristics again");
     await this.setPref("doh-rollout.disable-heuristics", true);
   },
 
@@ -90,7 +96,7 @@ const stateManager = {
       TRR_MODE_PREF, 0);
     let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
-    console.log("Comparing previous trr mode to current mode:",
+    log("Comparing previous trr mode to current mode:",
       prevMode, curMode, prevModeCheck);
 
     // Don't run heuristics if:
@@ -128,7 +134,7 @@ const stateManager = {
       await stateManager.rememberDoorhangerPingSent();
     }
 
-    console.log("Should show doorhanger:", !doorhangerShown);
+    log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
   }
 };
@@ -138,14 +144,14 @@ let notificationTime = new Date().getTime() / 1000;
 
 const rollout = {
   async doorhangerAcceptListener(tabId) {
-    console.log("Doorhanger accepted on tab", tabId);
+    log("Doorhanger accepted on tab", tabId);
     await stateManager.setState("UIOk");
     await stateManager.rememberDoorhangerDecision("UIOk");
     await stateManager.rememberDoorhangerPingSent();
   },
 
   async doorhangerDeclineListener(tabId) {
-    console.log("Doorhanger declined on tab", tabId);
+    log("Doorhanger declined on tab", tabId);
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
@@ -155,7 +161,7 @@ const rollout = {
     // Possible race condition between multiple notifications?
     let curTime = new Date().getTime() / 1000;
     let timePassed = curTime - notificationTime;
-    console.log("Time passed since last network change:", timePassed);
+    log("Time passed since last network change:", timePassed);
     if (timePassed < 30) {
       return;
     }
@@ -182,7 +188,7 @@ const rollout = {
     } else {
       decision = "enable_doh";
     }
-    console.log("Heuristics decision on " + evaluateReason + ": " + decision);
+    log("Heuristics decision on " + evaluateReason + ": " + decision);
 
     // Send Telemetry on results of heuristics
     results.evaluateReason = evaluateReason;
@@ -202,30 +208,30 @@ const rollout = {
   async backup() {
     for (let pref of RESTORE_PREFS) {
       let prefValue = await browser.experiments.preferences.getUserPref(pref, null);
-      console.log("Got pref", pref, prefValue);
+      log("Got pref", pref, prefValue);
       await this.setSetting(`restore.${pref}`, prefValue);
     }
   },
 
   async restore() {
-    console.log("calling restore");
+    log("calling restore");
     for (let pref of RESTORE_PREFS) {
       let prefValue = await this.getSetting(`restore.${pref}`);
-      console.log("Restoring pref", pref, prefValue);
+      log("Restoring pref", pref, prefValue);
       await stateManager.setPref(pref, prefValue);
     }
   },
 
   async init() {
 
-    console.log("calling init");
+    log("calling init");
     let doneFirstRun = await this.getSetting("doneFirstRun");
     if (!doneFirstRun) {
-      console.log("first run!");
+      log("first run!");
       await this.backup();
       this.setSetting("doneFirstRun", true);
     } else {
-      console.log("not first run!");
+      log("not first run!");
     }
 
     // Register the events for sending pings
@@ -254,7 +260,7 @@ const rollout = {
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
-    console.log("Captive state:", captiveState);
+    log("Captive state:", captiveState);
     if ((captiveState === "unlocked_portal") ||
         (captiveState === "not_captive")) {
       await rollout.onReady({state: captiveState});
@@ -311,7 +317,7 @@ const setup = {
   async start() {
     let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
     if (!runAddon && !this.enabled) {
-      console.log("First run");
+      log("First run");
     } else if (!runAddon) {
       this.enabled = false;
       rollout.restore();
