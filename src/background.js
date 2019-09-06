@@ -1,6 +1,11 @@
 "use strict";
 /* global browser, runHeuristics */
 
+function log() {
+  if (false) {
+    console.log(...arguments);
+  }
+}
 
 const stateManager = {
   async setState(state) {
@@ -9,19 +14,19 @@ const stateManager = {
     prefs["network.trr.disable-ECS"] = true;
 
     switch (state) {
-      case "uninstalled":
-        break;
-      case "disabled":
-        prefs["network.trr.mode"] = 0;
-        break;
-      case "UIOk":
-      case "UITimeout":
-      case "enabled":
-        prefs["network.trr.mode"] = 2;
-        break;
-      case "UIDisabled":
-        prefs["network.trr.mode"] = 5;
-        break;
+    case "uninstalled":
+      break;
+    case "disabled":
+      prefs["network.trr.mode"] = 0;
+      break;
+    case "UIOk":
+    case "UITimeout":
+    case "enabled":
+      prefs["network.trr.mode"] = 2;
+      break;
+    case "UIDisabled":
+      prefs["network.trr.mode"] = 5;
+      break;
     }
     for (let pref in prefs) {
       let type = "string";
@@ -38,30 +43,30 @@ const stateManager = {
 
   async rememberTRRMode() {
     let curMode = await browser.experiments.preferences.getUserPref("network.trr.mode", 0);
-    console.log("Saving current trr mode:", curMode);
+    log("Saving current trr mode:", curMode);
     await browser.experiments.preferences.setPref("doh-rollout.previous.trr.mode", curMode, "int");
   },
 
   async rememberDoorhangerShown() {
-    console.log("Remembering that doorhanger has been shown");
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-shown", 
+    log("Remembering that doorhanger has been shown");
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-shown",
       true, "bool");
   },
 
   async rememberDoorhangerPingSent() {
-    console.log("Remembering that doorhanger ping has been sent");
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-ping-sent", 
+    log("Remembering that doorhanger ping has been sent");
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-ping-sent",
       true, "bool");
   },
 
   async rememberDoorhangerDecision(decision) {
-    console.log("Remember doorhanger decision:", decision);
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-decision", 
+    log("Remember doorhanger decision:", decision);
+    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-decision",
       decision, "string");
   },
 
   async rememberDisableHeuristics() {
-    console.log("Remembering to never run heuristics again");
+    log("Remembering to never run heuristics again");
     await browser.experiments.preferences.setPref("doh-rollout.disable-heuristics",
       true, "bool");
   },
@@ -73,7 +78,7 @@ const stateManager = {
       "network.trr.mode", 0);
     let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
-    console.log("Comparing previous trr mode to current mode:", 
+    log("Comparing previous trr mode to current mode:",
       prevMode, curMode);
 
     // Don't run heuristics if:
@@ -111,7 +116,7 @@ const stateManager = {
       await stateManager.rememberDoorhangerPingSent();
     }
 
-    console.log("Should show doorhanger:", !doorhangerShown);
+    log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
   }
 };
@@ -121,14 +126,14 @@ let notificationTime = new Date().getTime() / 1000;
 
 const rollout = {
   async doorhangerAcceptListener(tabId) {
-    console.log("Doorhanger accepted on tab", tabId);
+    log("Doorhanger accepted on tab", tabId);
     await stateManager.setState("UIOk");
     await stateManager.rememberDoorhangerDecision("UIOk");
     await stateManager.rememberDoorhangerPingSent();
   },
 
   async doorhangerDeclineListener(tabId) {
-    console.log("Doorhanger declined on tab", tabId);
+    log("Doorhanger declined on tab", tabId);
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
@@ -138,7 +143,7 @@ const rollout = {
     // Possible race condition between multiple notifications?
     let curTime = new Date().getTime() / 1000;
     let timePassed = curTime - notificationTime;
-    console.log("Time passed since last network change:", timePassed);
+    log("Time passed since last network change:", timePassed);
     if (timePassed < 30) {
       return;
     }
@@ -147,7 +152,7 @@ const rollout = {
     // Run heuristics to determine if DoH should be disabled
     let decision = await rollout.heuristics("netChange");
     if (decision === "disable_doh") {
-      await stateManager.setState("disabled"); 
+      await stateManager.setState("disabled");
     } else {
       await stateManager.setState("enabled");
     }
@@ -165,7 +170,7 @@ const rollout = {
     } else {
       decision = "enable_doh";
     }
-    console.log("Heuristics decision on " + evaluateReason + ": " + decision);
+    log("Heuristics decision on " + evaluateReason + ": " + decision);
 
     // Send Telemetry on results of heuristics
     results.evaluateReason = evaluateReason;
@@ -178,13 +183,13 @@ const rollout = {
     let runAddon = await browser.experiments.preferences.getUserPref(
       "doh-rollout.enabled", false);
     if (!runAddon) {
-      console.log("Normandy pref is false; not running the addon");
+      log("Normandy pref is false; not running the addon");
       return;
     }
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
-    
+
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     if (shouldRunHeuristics) {
@@ -199,30 +204,30 @@ const rollout = {
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
-    if ((captiveState === "unlocked_portal") || 
+    if ((captiveState === "unlocked_portal") ||
         (captiveState === "not_captive")) {
       await rollout.onReady({state: captiveState});
     }
 
   },
-   
+
   async onReady(details) {
-    // Now that we're here, stop listening to the captive portal 
+    // Now that we're here, stop listening to the captive portal
     browser.captivePortal.onStateChanged.removeListener(rollout.onReady);
 
     // Only proceed if we're not behind a captive portal
-    if ((details.state !== "unlocked_portal") && 
+    if ((details.state !== "unlocked_portal") &&
         (details.state !== "not_captive")) {
       return;
     }
 
-    // Run startup heuristics to determine if DoH should be disabled 
+    // Run startup heuristics to determine if DoH should be disabled
     let decision = await rollout.heuristics("startup");
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
     if (decision === "disable_doh") {
       await stateManager.setState("disabled");
 
-    // If the heuristics say to enable DoH, determine if the doorhanger 
+    // If the heuristics say to enable DoH, determine if the doorhanger
     // should be shown
     } else if (shouldShowDoorhanger) {
       browser.experiments.doorhanger.onDoorhangerAccept.addListener(
@@ -242,7 +247,7 @@ const rollout = {
 
       await stateManager.rememberDoorhangerShown();
 
-    // If the doorhanger doesn't need to be shown and the heuristics 
+    // If the doorhanger doesn't need to be shown and the heuristics
     // say to enable DoH, enable it
     } else {
       await stateManager.setState("enabled");
@@ -257,8 +262,8 @@ const rollout = {
         if (shouldRunHeuristics) {
           // Before we run the heuristics, make sure we're not behind a captive portal
           let captiveState = await browser.captivePortal.getState();
-          console.log("Captive state:", captiveState);
-          if ((captiveState === "unlocked_portal") || 
+          log("Captive state:", captiveState);
+          if ((captiveState === "unlocked_portal") ||
               (captiveState === "not_captive")) {
             await rollout.netChangeListener(reason);
           }
