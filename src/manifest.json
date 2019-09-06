@@ -15,6 +15,7 @@
 
   "permissions": [
     "dns",
+    "storage",
     "captivePortal"
   ],
 

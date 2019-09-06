@@ -19,7 +19,7 @@ const prefManager = {
   },
   setPref(name, value, type) {
     if (value === null) {
-      Services.prefs.clearUserPref(name);
+      return Services.prefs.clearUserPref(name);
     }
     /* As prefs are hidden we can't use Services.prefs.getPrefType */
     switch (type) {
