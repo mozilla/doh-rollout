@@ -1,6 +1,6 @@
 {
   "name": "doh-rollout",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "DoH Roll-Out",
   "main": ".eslintrc.js",
   "scripts": {
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ahounsel/doh-rollout.git"
+    "url": "git+https://github.com/mozilla/doh-rollout.git"
   },
   "author": "Austin Hounsel",
   "license": "MPL-2.0",
   "bugs": {
-    "url": "https://github.com/ahounsel/doh-rollout/issues"
+    "url": "https://github.com/mozilla/doh-rollout/issues"
   },
-  "homepage": "https://github.com/ahounse/doh-rollout#readme",
+  "homepage": "https://github.com/mozilla/doh-rollout#readme",
   "dependencies": {
     "shield-studies-addon-utils": "^5.2.1"
   },

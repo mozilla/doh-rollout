@@ -7,84 +7,102 @@ function log() {
   }
 }
 
+const TRR_URI_PREF = "network.trr.uri";
+const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
+const TRR_MODE_PREF = "network.trr.mode";
+
+const RESTORE_PREFS = [
+  TRR_URI_PREF,
+  TRR_DISABLE_ECS_PREF,
+  TRR_MODE_PREF,
+];
+
 const stateManager = {
   async setState(state) {
     let prefs = {};
-    prefs["network.trr.uri"] = "https://mozilla.cloudflare-dns.com/dns-query";
-    prefs["network.trr.disable-ECS"] = true;
+    prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
+    prefs[TRR_DISABLE_ECS_PREF] = true;
 
     switch (state) {
     case "uninstalled":
       break;
     case "disabled":
-      prefs["network.trr.mode"] = 0;
+      prefs[TRR_MODE_PREF] = 0;
       break;
     case "UIOk":
     case "UITimeout":
     case "enabled":
-      prefs["network.trr.mode"] = 2;
+      prefs[TRR_MODE_PREF] = 2;
       break;
     case "UIDisabled":
-      prefs["network.trr.mode"] = 5;
+      prefs[TRR_MODE_PREF] = 5;
       break;
     }
     for (let pref in prefs) {
-      let type = "string";
-      if (typeof prefs[pref] == "number") {
-        type = "int";
-      } else if (typeof prefs[pref] == "boolean") {
-        type = "bool";
-      }
-      await browser.experiments.preferences.setPref(pref, prefs[pref], type);
+      await this.setPref(pref, prefs[pref]);
     }
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
   },
 
+  async setPref(prefName, value) {
+    let type = "string";
+    let defaultValue = "";
+    if (typeof value == "number") {
+      type = "int";
+      defaultValue = 0;
+    } else if (typeof value == "boolean") {
+      type = "bool";
+      defaultValue = false;
+    }
+
+    let currentPrefValue = await browser.experiments.preferences.getUserPref(prefName, defaultValue);
+    await browser.storage.local.set({[prefName]: currentPrefValue});
+    log("setting pref", {prefName, value, currentPrefValue, type});
+    await browser.experiments.preferences.setPref(prefName, value, type);
+  },
+
   async rememberTRRMode() {
-    let curMode = await browser.experiments.preferences.getUserPref("network.trr.mode", 0);
+    let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
-    await browser.experiments.preferences.setPref("doh-rollout.previous.trr.mode", curMode, "int");
+    await this.setPref("doh-rollout.previous.trr.mode", curMode);
   },
 
   async rememberDoorhangerShown() {
     log("Remembering that doorhanger has been shown");
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-shown",
-      true, "bool");
+    await this.setPref("doh-rollout.doorhanger-shown", true);
   },
 
   async rememberDoorhangerPingSent() {
     log("Remembering that doorhanger ping has been sent");
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-ping-sent",
-      true, "bool");
+    await this.setPref("doh-rollout.doorhanger-ping-sent", true);
   },
 
   async rememberDoorhangerDecision(decision) {
     log("Remember doorhanger decision:", decision);
-    await browser.experiments.preferences.setPref("doh-rollout.doorhanger-decision",
-      decision, "string");
+    await this.setPref("doh-rollout.doorhanger-decision", decision);
   },
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
-    await browser.experiments.preferences.setPref("doh-rollout.disable-heuristics",
-      true, "bool");
+    await this.setPref("doh-rollout.disable-heuristics", true);
   },
 
   async shouldRunHeuristics() {
     let prevMode = await browser.experiments.preferences.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
+    let prevModeCheck = await browser.storage.local.get(TRR_MODE_PREF);
     let curMode = await browser.experiments.preferences.getUserPref(
-      "network.trr.mode", 0);
+      TRR_MODE_PREF, 0);
     let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
     log("Comparing previous trr mode to current mode:",
-      prevMode, curMode);
+      prevMode, curMode, prevModeCheck);
 
     // Don't run heuristics if:
     //  1) Previous doesn't mode equals current mode, i.e. user overrode our changes
     //  2) TRR mode equals 5, i.e. user clicked "No" on doorhanger
-    //  3) TRR mode equuls 3, i.e. user enabled "strictly on" for DoH
+    //  3) TRR mode equals 3, i.e. user enabled "strictly on" for DoH
     //  4) They've been disabled in the past for the reasons listed above
     //
     // In other words, if the user has made their own decision for DoH,
@@ -178,13 +196,42 @@ const rollout = {
     return decision;
   },
 
+  async getSetting(name) {
+    let data = await browser.storage.local.get(name);
+    return data[name];
+  },
+
+  async setSetting(name, value) {
+    await browser.storage.local.set({[name]: value});
+  },
+
+  async backup() {
+    for (let pref of RESTORE_PREFS) {
+      let prefValue = await browser.experiments.preferences.getUserPref(pref, null);
+      log("Got pref", pref, prefValue);
+      await this.setSetting(`restore.${pref}`, prefValue);
+    }
+  },
+
+  async restore() {
+    log("calling restore");
+    for (let pref of RESTORE_PREFS) {
+      let prefValue = await this.getSetting(`restore.${pref}`);
+      log("Restoring pref", pref, prefValue);
+      await stateManager.setPref(pref, prefValue);
+    }
+  },
+
   async init() {
-    // Check the pref set by Normandy for running the addon
-    let runAddon = await browser.experiments.preferences.getUserPref(
-      "doh-rollout.enabled", false);
-    if (!runAddon) {
-      log("Normandy pref is false; not running the addon");
-      return;
+
+    log("calling init");
+    let doneFirstRun = await this.getSetting("doneFirstRun");
+    if (!doneFirstRun) {
+      log("first run!");
+      await this.backup();
+      this.setSetting("doneFirstRun", true);
+    } else {
+      log("not first run!");
     }
 
     // Register the events for sending pings
@@ -195,6 +242,15 @@ const rollout = {
     if (shouldRunHeuristics) {
       await rollout.main();
     }
+
+    // Listen for network change events to run heuristics again
+    browser.experiments.netChange.onConnectionChanged.addListener(async (reason) => {
+      // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+      if (shouldRunHeuristics) {
+        await rollout.main();
+      }
+    });
   },
 
   async main() {
@@ -204,6 +260,7 @@ const rollout = {
     // If the captive portal is already unlocked or doesn't exist,
     // run the measurement
     let captiveState = await browser.captivePortal.getState();
+    log("Captive state:", captiveState);
     if ((captiveState === "unlocked_portal") ||
         (captiveState === "not_captive")) {
       await rollout.onReady({state: captiveState});
@@ -252,29 +309,25 @@ const rollout = {
     } else {
       await stateManager.setState("enabled");
     }
-
-
-    // Listen for network change events to run heuristics again
-    browser.experiments.netChange.onConnectionChanged.addListener(
-      async (reason) => {
-        // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-        let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-        if (shouldRunHeuristics) {
-          // Before we run the heuristics, make sure we're not behind a captive portal
-          let captiveState = await browser.captivePortal.getState();
-          log("Captive state:", captiveState);
-          if ((captiveState === "unlocked_portal") ||
-              (captiveState === "not_captive")) {
-            await rollout.netChangeListener(reason);
-          }
-        }
-      }
-    );
   },
 };
 
-// Observe the enable pref as Normandy might fire second
-browser.experiments.preferences.onPrefChanged.addListener(async _ => {
-  rollout.init();
-});
-rollout.init();
+const setup = {
+  enabled: false,
+  async start() {
+    let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
+    if (!runAddon && !this.enabled) {
+      log("First run");
+    } else if (!runAddon) {
+      this.enabled = false;
+      rollout.restore();
+    } else {
+      this.enabled = true;
+      rollout.init();
+    }
+
+    browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
+  }
+};
+
+setup.start();
