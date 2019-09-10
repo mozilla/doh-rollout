@@ -9,7 +9,7 @@ ChromeUtils.import("resource://gre/modules/ExtensionCommon.jsm");
 ChromeUtils.import("resource://gre/modules/ExtensionUtils.jsm");
 
 var {EventManager, EventEmitter} = ExtensionCommon;
-var {Management: {global: {tabTracker}}} = ChromeUtils.import("resource://gre/modules/Extension.jsm", {});
+const {Management: {global: { tabTracker }}} = ChromeUtils.import("resource://gre/modules/Extension.jsm", null);
 
 ChromeUtils.defineModuleGetter(
   this,
