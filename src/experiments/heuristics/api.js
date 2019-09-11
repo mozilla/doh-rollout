@@ -4,6 +4,11 @@
 let Cu3 = Components.utils;
 Cu3.import("resource://gre/modules/Services.jsm");
 
+function log() {
+  if (false) {
+    console.log(...arguments);
+  }
+}
 
 let pcs = Cc["@mozilla.org/parental-controls-service;1"]
           .getService(Ci.nsIParentalControlsService);
@@ -36,7 +41,7 @@ const heuristicsManager = {
   },
 
   sendHeuristicsPing(decision, results) {
-    console.log("Sending a heuristics ping", decision, results);
+    log("Sending a heuristics ping", decision, results);
     Services.telemetry.recordEvent("doh", "evaluate", "heuristics",decision, results).catch(e => {
       // eslint-disable-next-line no-console
       console.error("Failed to record telemetry event!", e);
@@ -44,7 +49,7 @@ const heuristicsManager = {
   },
 
   sendStatePing(state) {
-    console.log("Sending an addon state ping", state);
+    log("Sending an addon state ping", state);
     Services.telemetry.recordEvent("doh", "state", state, "null").catch(e => {
       // eslint-disable-next-line no-console
       console.error("Failed to record telemetry event!", e);
