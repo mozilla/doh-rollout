@@ -11,7 +11,7 @@ function log() {
 }
 
 let pcs = Cc["@mozilla.org/parental-controls-service;1"]
-          .getService(Ci.nsIParentalControlsService);
+  .getService(Ci.nsIParentalControlsService);
 
 const TELEMETRY_CATEGORY = "doh";
 
@@ -98,7 +98,7 @@ var heuristics = class heuristics extends ExtensionAPI {
           },
 
           sendHeuristicsPing(decision, results) {
-            heuristicsManager.sendHeuristicsPing(decision, results); 
+            heuristicsManager.sendHeuristicsPing(decision, results);
           },
 
           sendStatePing(state) {
