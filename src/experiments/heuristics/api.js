@@ -8,29 +8,30 @@ Cu3.import("resource://gre/modules/Services.jsm");
 let pcs = Cc["@mozilla.org/parental-controls-service;1"]
           .getService(Ci.nsIParentalControlsService);
 
+const TELEMETRY_CATEGORY = "doh";
+
+const TELEMETRY_EVENTS = {
+  "evaluate": {
+    methods: [ "evaluate" ],
+    objects: [ "heuristics" ],
+    extra_keys: ["google", "youtube", "comcastProtect", "comcastParent", "canary", "modifiedRoots", "browserParent", "policy", "evaluateReason"],
+    record_on_release: true,
+  },
+  "state": {
+    methods: ["state"],
+    objects: ["loaded", "enabled", "disabled", "uninstalled",
+      "UIOk", "UIDisabled", "UITimeout"],
+    extra_keys: [],
+    record_on_release: true,
+  }
+};
 
 const heuristicsManager = {
   setupTelemetry() {
-    // Set up the Telemetry for the heuristics
-    Services.telemetry.registerEvents("doh", {
-      "evaluate": {
-        methods: ["evaluate"],
-        objects: ["heuristics"],
-        extra_keys: ["google", "youtube",
-                     "comcastProtect", "comcastParent",
-                     "canary", "modifiedRoots", 
-                     "browserParent", "policy",
-                     "evaluateReason"]
-      }
-    });
-
-    // Set up the Telemetry for the addon state 
-    Services.telemetry.registerEvents("doh", {
-      "state": {
-        methods: ["state"],
-        objects: ["loaded", "enabled", "disabled", "uninstalled",
-                  "UIOk", "UIDisabled", "UITimeout"]
-      }
+    // Set up the Telemetry for the heuristics and addon state
+    Services.telemetry.registerEvents(TELEMETRY_CATEGORY, TELEMETRY_EVENTS).catch(e => {
+      // eslint-disable-next-line no-console: ""
+      console.error("Failed to register telemetry events!", e);
     });
   },
 
