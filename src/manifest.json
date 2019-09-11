@@ -14,9 +14,10 @@
   },
 
   "permissions": [
+    "captivePortal",
     "dns",
     "storage",
-    "captivePortal"
+    "telemetry"
   ],
 
   "background": {
