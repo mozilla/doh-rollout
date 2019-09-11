@@ -11,7 +11,7 @@
     "description": "Bold title is shown to ask the user if they wish to disable DoH"
   }, 
   "doorhangerText": {
-    "message": "Firefox 现在会尽可能地加密 DNS 查询，并将其路由到可信赖的合作伙伴——除非您的设备或网络使用自定义 DNS 设置。这将有助于防止网络钓鱼、恶意软件和监视。", 
+    "message": "Firefox 现在会尽可能加密 DNS 查询，并交由可信的合作伙伴完成操作——除非您的设备或网络有自定义 DNS 设置。这将有助于防止网络钓鱼、恶意软件和监视。", 
     "description": "This text is shown to ask the user if they wish to disable DoH"
   }, 
   "doorhangerButtonOk": {
