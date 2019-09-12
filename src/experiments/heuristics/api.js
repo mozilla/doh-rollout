@@ -33,27 +33,18 @@ const TELEMETRY_EVENTS = {
 
 const heuristicsManager = {
   setupTelemetry() {
-    // Set up the Telemetry for the heuristics and addon state
-    Services.telemetry.registerEvents(TELEMETRY_CATEGORY, TELEMETRY_EVENTS).catch(e => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to register telemetry events!", e);
-    });
+    // Set up the Telemetry for the heuristics  and addon state
+    Services.telemetry.registerEvents(TELEMETRY_CATEGORY, TELEMETRY_EVENTS);
   },
 
   sendHeuristicsPing(decision, results) {
     log("Sending a heuristics ping", decision, results);
-    Services.telemetry.recordEvent("doh", "evaluate", "heuristics",decision, results).catch(e => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to record telemetry event!", e);
-    });
+    Services.telemetry.recordEvent("doh", "evaluate", "heuristics",decision, results);
   },
 
   sendStatePing(state) {
     log("Sending an addon state ping", state);
-    Services.telemetry.recordEvent("doh", "state", state, "null").catch(e => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to record telemetry event!", e);
-    });
+    Services.telemetry.recordEvent("doh", "state", state, "null");
   },
 
   async checkEnterprisePolicies() {
