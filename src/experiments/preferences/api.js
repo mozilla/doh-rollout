@@ -7,9 +7,47 @@ Cu2.import("resource://gre/modules/Services.jsm");
 Cu2.import("resource://gre/modules/ExtensionSettingsStore.jsm");
 Cu2.import("resource://gre/modules/AddonManager.jsm");
 Cu2.import("resource://gre/modules/NetUtil.jsm");
-/* global ExtensionSettingsStore, AddonManager, NetUtil */
-
+ChromeUtils.defineModuleGetter(this, "ExtensionPreferencesManager",
+                               "resource://gre/modules/ExtensionPreferencesManager.jsm");
+/* global ExtensionSettingsStore, AddonManager, NetUtil, ExtensionPreferencesManager */
 // TODO file scope issue on experiments that join extension contexts causing redeclaration issues.
+
+const TRR_URI_PREF = "network.trr.uri";
+const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
+const TRR_MODE_PREF = "network.trr.mode";
+
+ExtensionPreferencesManager.addSetting("dohRollout.state", {
+  prefNames: [
+    TRR_URI_PREF,
+    TRR_DISABLE_ECS_PREF,
+    TRR_MODE_PREF,
+  ],
+
+  setCallback(value) {
+    let prefs = {};
+    prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
+    prefs[TRR_DISABLE_ECS_PREF] = true;
+    prefs[TRR_MODE_PREF] = 0;
+
+    switch (value) {
+    case "uninstalled":
+      break;
+    case "disabled":
+      prefs[TRR_MODE_PREF] = 0;
+      break;
+    case "manuallyDisabled":
+    case "UIOk":
+    case "UITimeout":
+    case "enabled":
+      prefs[TRR_MODE_PREF] = 2;
+      break;
+    case "UIDisabled":
+      prefs[TRR_MODE_PREF] = 5;
+      break;
+    }
+    return prefs;
+  },
+});
 
 const prefManager = {
   setPrefs(prefs) {
@@ -77,8 +115,30 @@ var preferences = class preferences extends ExtensionAPI {
               return () => {
                 Services.prefs.removeObserver("doh-rollout.enabled", observer);
               };
-            }
+            },
           }).api(),
+
+          state: Object.assign(
+            ExtensionPreferencesManager.getSettingsAPI(
+              context.extension.id,
+              "dohRollout.state",
+              () => {
+                throw new Error("Not supported");
+              },
+              undefined,
+              false,
+              () => {}
+            ),
+            {
+              set: details => {
+                return ExtensionPreferencesManager.setSetting(
+                  context.extension.id,
+                  "dohRollout.state",
+                  details.value
+                );
+              },
+            }
+          ),
         },
       },
     };

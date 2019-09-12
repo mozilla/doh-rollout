@@ -117,6 +117,12 @@
         ],
         "async": true 
       }
-    ]
+    ],
+    "properties": {
+      "state": {
+        "$ref": "types.Setting",
+        "description": "This property controls the proxy settings"
+      }
+    }
   }
 ]

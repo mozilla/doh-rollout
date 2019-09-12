@@ -19,29 +19,7 @@ const RESTORE_PREFS = [
 
 const stateManager = {
   async setState(state) {
-    let prefs = {};
-    prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
-    prefs[TRR_DISABLE_ECS_PREF] = true;
-
-    switch (state) {
-    case "uninstalled":
-      break;
-    case "disabled":
-      prefs[TRR_MODE_PREF] = 0;
-      break;
-    case "manuallyDisabled":
-    case "UIOk":
-    case "UITimeout":
-    case "enabled":
-      prefs[TRR_MODE_PREF] = 2;
-      break;
-    case "UIDisabled":
-      prefs[TRR_MODE_PREF] = 5;
-      break;
-    }
-    for (let pref in prefs) {
-      await this.setPref(pref, prefs[pref]);
-    }
+    browser.experiments.preferences.state.set({ value: state });
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
   },
