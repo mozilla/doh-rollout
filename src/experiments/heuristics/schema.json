@@ -92,6 +92,14 @@
         "parameters": [
         ],
         "async": true
+      },
+      {
+        "name": "checkThirdPartyRoots",
+        "type": "function",
+        "description": "Checks for third party roots",
+        "parameters": [
+        ],
+        "async": true
       }
     ]
   }

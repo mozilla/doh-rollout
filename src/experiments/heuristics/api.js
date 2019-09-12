@@ -75,7 +75,22 @@ const heuristicsManager = {
       return "disable_doh";
     }
     return "enable_doh";
+  },
+
+  async checkThirdPartyRoots(){
+    let certdb = Cc["@mozilla.org/security/x509certdb;1"].getService(Ci.nsIX509CertDB);
+    for (let cert of certdb.getCerts()) {
+      if (certdb.isCertTrusted(cert, Ci.nsIX509Cert.CA_CERT, Ci.nsIX509CertDB.TRUSTED_SSL)) {
+        if (!cert.Es) {
+          // this cert is a trust anchor that wasn't shipped with the browser
+          log("cert is a trust anchor");
+          return "disable_doh";
+        }
+      }
+    }
+    return "enable_doh";
   }
+
 };
 
 
@@ -103,6 +118,11 @@ var heuristics = class heuristics extends ExtensionAPI {
 
           async checkParentalControls() {
             let result = await heuristicsManager.checkParentalControls();
+            return result;
+          },
+
+          async checkThirdPartyRoots() {
+            let result = await heuristicsManager.checkThirdPartyRoots();
             return result;
           }
         },
