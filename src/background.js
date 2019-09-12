@@ -29,6 +29,7 @@ const stateManager = {
     case "disabled":
       prefs[TRR_MODE_PREF] = 0;
       break;
+    case "manuallyDisabled":
     case "UIOk":
     case "UITimeout":
     case "enabled":
@@ -113,6 +114,10 @@ const stateManager = {
     } else if ((prevMode !== curMode) ||
                (curMode === 5) ||
                (curMode === 3)) {
+      // Add logic specific if user disables DoH in about:config 
+      if ( (curMode === 0) && (prevMode !== curMode) ) {
+        await stateManager.setState("manuallyDisabled");
+      }
       await stateManager.rememberDisableHeuristics();
       await stateManager.rememberTRRMode();
       return false;
