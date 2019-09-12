@@ -39,12 +39,12 @@ const heuristicsManager = {
 
   sendHeuristicsPing(decision, results) {
     log("Sending a heuristics ping", decision, results);
-    Services.telemetry.recordEvent("doh", "evaluate", "heuristics",decision, results);
+    Services.telemetry.recordEvent(TELEMETRY_CATEGORY, "evaluate", "heuristics", decision, results);
   },
 
   sendStatePing(state) {
     log("Sending an addon state ping", state);
-    Services.telemetry.recordEvent("doh", "state", state, "null");
+    Services.telemetry.recordEvent(TELEMETRY_CATEGORY, "state", state, "null");
   },
 
   async checkEnterprisePolicies() {
