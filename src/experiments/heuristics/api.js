@@ -4,45 +4,47 @@
 let Cu3 = Components.utils;
 Cu3.import("resource://gre/modules/Services.jsm");
 
+function log() {
+  if (false) {
+    console.log(...arguments);
+  }
+}
 
 let pcs = Cc["@mozilla.org/parental-controls-service;1"]
-          .getService(Ci.nsIParentalControlsService);
+  .getService(Ci.nsIParentalControlsService);
 
+const TELEMETRY_CATEGORY = "doh";
+
+const TELEMETRY_EVENTS = {
+  "evaluate": {
+    methods: [ "evaluate" ],
+    objects: [ "heuristics" ],
+    extra_keys: ["google", "youtube", "comcastProtect", "comcastParent", "canary", "modifiedRoots", "browserParent", "policy", "evaluateReason"],
+    record_on_release: true,
+  },
+  "state": {
+    methods: ["state"],
+    objects: ["loaded", "enabled", "disabled", "uninstalled",
+      "UIOk", "UIDisabled", "UITimeout"],
+    extra_keys: [],
+    record_on_release: true,
+  }
+};
 
 const heuristicsManager = {
   setupTelemetry() {
-    // Set up the Telemetry for the heuristics
-    Services.telemetry.registerEvents("doh", {
-      "evaluate": {
-        methods: ["evaluate"],
-        objects: ["heuristics"],
-        extra_keys: ["google", "youtube",
-                     "comcastProtect", "comcastParent",
-                     "canary", "modifiedRoots", 
-                     "browserParent", "policy",
-                     "evaluateReason"]
-      }
-    });
-
-    // Set up the Telemetry for the addon state 
-    Services.telemetry.registerEvents("doh", {
-      "state": {
-        methods: ["state"],
-        objects: ["loaded", "enabled", "disabled", "uninstalled",
-                  "UIOk", "UIDisabled", "UITimeout"]
-      }
-    });
+    // Set up the Telemetry for the heuristics  and addon state
+    Services.telemetry.registerEvents(TELEMETRY_CATEGORY, TELEMETRY_EVENTS);
   },
 
   sendHeuristicsPing(decision, results) {
-    console.log("Sending a heuristics ping", decision, results);
-    Services.telemetry.recordEvent("doh", "evaluate", "heuristics",
-                                   decision, results);
+    log("Sending a heuristics ping", decision, results);
+    Services.telemetry.recordEvent(TELEMETRY_CATEGORY, "evaluate", "heuristics", decision, results);
   },
 
   sendStatePing(state) {
-    console.log("Sending an addon state ping", state);
-    Services.telemetry.recordEvent("doh", "state", state, "null");
+    log("Sending an addon state ping", state);
+    Services.telemetry.recordEvent(TELEMETRY_CATEGORY, "state", state, "null");
   },
 
   async checkEnterprisePolicies() {
@@ -87,7 +89,7 @@ var heuristics = class heuristics extends ExtensionAPI {
           },
 
           sendHeuristicsPing(decision, results) {
-            heuristicsManager.sendHeuristicsPing(decision, results); 
+            heuristicsManager.sendHeuristicsPing(decision, results);
           },
 
           sendStatePing(state) {
