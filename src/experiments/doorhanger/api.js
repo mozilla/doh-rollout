@@ -63,6 +63,7 @@ class DoorhangerEventEmitter extends EventEmitter {
       name,
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
       learnMoreURL,
+      escAction: "buttoncommand",
     };
     recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
   }
