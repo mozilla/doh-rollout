@@ -151,6 +151,7 @@ async function runHeuristics() {
   // Check other heuristics through privileged code
   let browserParentCheck = await browser.experiments.heuristics.checkParentalControls();
   let enterpriseCheck = await browser.experiments.heuristics.checkEnterprisePolicies();
+  let checkThirdPartyRoots = await browser.experiments.heuristics.checkThirdPartyRoots();
 
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
