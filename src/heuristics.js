@@ -61,7 +61,7 @@ async function safeSearch() {
       ],
     }
   ];
- 
+
   // Compare strict domain lookups to non-strict domain lookups
   let safeSearchChecks = {};
   for (let i = 0; i < providerList.length; i++) {
@@ -73,7 +73,7 @@ async function safeSearch() {
     results.unfilteredAnswers = await dnsListLookup(providerObj.unfiltered);
     results.safeSearchAnswers = await dnsListLookup(providerObj.safeSearch);
 
-    // Given a provider, check if the answer for any safe search domain 
+    // Given a provider, check if the answer for any safe search domain
     // matches the answer for any default domain
     for (let j = 0; j < results.safeSearchAnswers.length; j++) {
       let answer = results.safeSearchAnswers[j];
@@ -141,7 +141,6 @@ async function modifiedRoots() {
   return "enable_doh";
 }
 
-
 async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
   let comcastChecks = await comcastDomains();
@@ -151,15 +150,17 @@ async function runHeuristics() {
   // Check other heuristics through privileged code
   let browserParentCheck = await browser.experiments.heuristics.checkParentalControls();
   let enterpriseCheck = await browser.experiments.heuristics.checkEnterprisePolicies();
+  let thirdPartyRootsCheck = await browser.experiments.heuristics.checkThirdPartyRoots();
 
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
-                    "youtube": safeSearchChecks.youtube,
-                    "comcastProtect": comcastChecks.malware,
-                    "comcastParent": comcastChecks.parental,
-                    "canary": canaryCheck,
-                    "modifiedRoots": modifiedRootsCheck,
-                    "browserParent": browserParentCheck,
-                    "policy": enterpriseCheck};
+    "youtube": safeSearchChecks.youtube,
+    "comcastProtect": comcastChecks.malware,
+    "comcastParent": comcastChecks.parental,
+    "canary": canaryCheck,
+    "modifiedRoots": modifiedRootsCheck,
+    "browserParent": browserParentCheck,
+    "thirdPartyRoots": thirdPartyRootsCheck,
+    "policy": enterpriseCheck};
   return heuristics;
 }

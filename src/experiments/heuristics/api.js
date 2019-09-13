@@ -19,7 +19,7 @@ const TELEMETRY_EVENTS = {
   "evaluate": {
     methods: [ "evaluate" ],
     objects: [ "heuristics" ],
-    extra_keys: ["google", "youtube", "comcastProtect", "comcastParent", "canary", "modifiedRoots", "browserParent", "policy", "evaluateReason"],
+    extra_keys: ["google", "youtube", "comcastProtect", "comcastParent", "canary", "modifiedRoots", "browserParent", "thirdPartyRoots", "policy", "evaluateReason"],
     record_on_release: true,
   },
   "state": {
@@ -75,7 +75,22 @@ const heuristicsManager = {
       return "disable_doh";
     }
     return "enable_doh";
+  },
+
+  async checkThirdPartyRoots(){
+    let certdb = Cc["@mozilla.org/security/x509certdb;1"].getService(Ci.nsIX509CertDB);
+    let allCerts = certdb.getCerts();
+    for (let cert of allCerts.getEnumerator()) {
+      if (certdb.isCertTrusted(cert, Ci.nsIX509Cert.CA_CERT, Ci.nsIX509CertDB.TRUSTED_SSL)) {
+        if (!cert.isBuiltInRoot) {
+          // this cert is a trust anchor that wasn't shipped with the browser
+          return "disable_doh";
+        }
+      }
+    }
+    return "enable_doh";
   }
+
 };
 
 
@@ -103,6 +118,11 @@ var heuristics = class heuristics extends ExtensionAPI {
 
           async checkParentalControls() {
             let result = await heuristicsManager.checkParentalControls();
+            return result;
+          },
+
+          async checkThirdPartyRoots() {
+            let result = await heuristicsManager.checkThirdPartyRoots();
             return result;
           }
         },
