@@ -80,7 +80,11 @@ const heuristicsManager = {
   async checkThirdPartyRoots(){
     let certdb = Cc["@mozilla.org/security/x509certdb;1"].getService(Ci.nsIX509CertDB);
     let allCerts = certdb.getCerts();
-    for (let cert of allCerts.getEnumerator()) {
+    // Pre 71 code (Bug 1577836)
+    if (allCerts.getEnumerator) {
+      allCerts = allCerts.getEnumerator();
+    }
+    for (let cert of allCerts) {
       if (certdb.isCertTrusted(cert, Ci.nsIX509Cert.CA_CERT, Ci.nsIX509CertDB.TRUSTED_SSL)) {
         if (!cert.isBuiltInRoot) {
           // this cert is a trust anchor that wasn't shipped with the browser
