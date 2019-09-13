@@ -108,14 +108,13 @@ const stateManager = {
     //
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that and never run the heuristics again
+
     if (disableHeuristics) {
       await stateManager.rememberTRRMode();
       return false;
-    } else if ((prevMode !== curMode) ||
-               (curMode === 5) ||
-               (curMode === 3)) {
-      // Add logic specific if user disables DoH in about:config 
-      if ( (curMode === 0) && (prevMode !== curMode) ) {
+    } else if ( prevMode !== curMode ||  curMode === 5 ||  curMode === 3) {
+      // Add logic specific if user disables DoH in about:config:
+      if ( curMode === 0 ) {
         await stateManager.setState("manuallyDisabled");
       }
       await stateManager.rememberDisableHeuristics();
