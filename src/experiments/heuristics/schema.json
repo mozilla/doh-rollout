@@ -52,6 +52,10 @@
                 "description": "Indicates whether browser has enabled parental controls",
                 "type": "string"
               },
+              "thirdPartyRoots": {
+                "description": "Indicates whether third-party roots are enabled",
+                "type": "string"
+              },
               "policy": {
                 "description": "Indicates whether browser policy blocks DoH",
                 "type": "string"

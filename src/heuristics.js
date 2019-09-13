@@ -152,6 +152,7 @@ async function runHeuristics() {
   let browserParentCheck = await browser.experiments.heuristics.checkParentalControls();
   let enterpriseCheck = await browser.experiments.heuristics.checkEnterprisePolicies();
   let checkThirdPartyRoots = await browser.experiments.heuristics.checkThirdPartyRoots();
+  let thirdPartyRootsCheck = await browser.experiments.heuristics.checkThirdPartyRoots();
 
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
@@ -162,5 +163,6 @@ async function runHeuristics() {
                     "modifiedRoots": modifiedRootsCheck,
                     "browserParent": browserParentCheck,
                     "policy": enterpriseCheck};
+    "thirdPartyRoots": thirdPartyRootsCheck,
   return heuristics;
 }
