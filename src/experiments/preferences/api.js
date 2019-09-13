@@ -7,8 +7,7 @@ Cu2.import("resource://gre/modules/Services.jsm");
 Cu2.import("resource://gre/modules/ExtensionSettingsStore.jsm");
 Cu2.import("resource://gre/modules/AddonManager.jsm");
 Cu2.import("resource://gre/modules/NetUtil.jsm");
-ChromeUtils.defineModuleGetter(this, "ExtensionPreferencesManager",
-                               "resource://gre/modules/ExtensionPreferencesManager.jsm");
+Cu2.import("resource://gre/modules/ExtensionPreferencesManager.jsm");
 /* global ExtensionSettingsStore, AddonManager, NetUtil, ExtensionPreferencesManager */
 // TODO file scope issue on experiments that join extension contexts causing redeclaration issues.
 
@@ -50,28 +49,6 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
 });
 
 const prefManager = {
-  setPrefs(prefs) {
-    prefs.forEach((pref) => {
-      this.setPref(pref.name, pref.value, pref.type);
-    });
-  },
-  setPref(name, value, type) {
-    if (value === null) {
-      return Services.prefs.clearUserPref(name);
-    }
-    /* As prefs are hidden we can't use Services.prefs.getPrefType */
-    switch (type) {
-    case "string":
-      return Services.prefs.setCharPref(name, value);
-    case "int":
-      return Services.prefs.setIntPref(name, value);
-    case "bool":
-      return Services.prefs.setBoolPref(name, value);
-    default:
-      throw new Error("Unknown type");
-    }
-  },
-
   getUserPref(name, value) {
     if (!Services.prefs.prefHasUserValue(name)) {
       return value;
@@ -97,9 +74,6 @@ var preferences = class preferences extends ExtensionAPI {
     return {
       experiments: {
         preferences: {
-          async setPref(name, value, type) {
-            return prefManager.setPref(name, value, type);
-          },
           async getUserPref(name, value) {
             return prefManager.getUserPref(name, value);
           },

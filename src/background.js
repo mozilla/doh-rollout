@@ -16,51 +16,37 @@ const stateManager = {
     await stateManager.rememberTRRMode();
   },
 
-  async setPref(prefName, value) {
-    let type = "string";
-    if (typeof value == "number") {
-      type = "int";
-    } else if (typeof value == "boolean") {
-      type = "bool";
-    }
-
-    log("setting pref", {prefName, value, type});
-    await browser.experiments.preferences.setPref(prefName, value, type);
-  },
-
   async rememberTRRMode() {
     let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
-    await this.setPref("doh-rollout.previous.trr.mode", curMode);
+    await rollout.setSetting("doh-rollout.previous.trr.mode", curMode);
   },
 
   async rememberDoorhangerShown() {
     log("Remembering that doorhanger has been shown");
-    await this.setPref("doh-rollout.doorhanger-shown", true);
+    await rollout.setSetting("doh-rollout.doorhanger-shown", true);
   },
 
   async rememberDoorhangerPingSent() {
     log("Remembering that doorhanger ping has been sent");
-    await this.setPref("doh-rollout.doorhanger-ping-sent", true);
+    await rollout.setSetting("doh-rollout.doorhanger-ping-sent", true);
   },
 
   async rememberDoorhangerDecision(decision) {
     log("Remember doorhanger decision:", decision);
-    await this.setPref("doh-rollout.doorhanger-decision", decision);
+    await rollout.setSetting("doh-rollout.doorhanger-decision", decision);
   },
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
-    await this.setPref("doh-rollout.disable-heuristics", true);
+    await rollout.setSetting("doh-rollout.disable-heuristics", true);
   },
 
   async shouldRunHeuristics() {
-    let prevMode = await browser.experiments.preferences.getUserPref(
-      "doh-rollout.previous.trr.mode", 0);
+    let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
     let curMode = await browser.experiments.preferences.getUserPref(
       TRR_MODE_PREF, 0);
-    let disableHeuristics = await browser.experiments.preferences.getUserPref(
-      "doh-rollout.disable-heuristics", false);
+    let disableHeuristics = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     log("Comparing previous trr mode to current mode:",
       prevMode, curMode);
 
@@ -89,10 +75,8 @@ const stateManager = {
   },
 
   async shouldShowDoorhanger() {
-    let doorhangerShown = await browser.experiments.preferences.getUserPref(
-      "doh-rollout.doorhanger-shown", false);
-    let doorhangerPingSent = await browser.experiments.preferences.getUserPref(
-      "doh-rollout.doorhanger-ping-sent", false);
+    let doorhangerShown = await rollout.getSetting("doh-rollout.doorhanger-shown", false);
+    let doorhangerPingSent = await rollout.getSetting("doh-rollout.doorhanger-ping-sent", false);
 
     // If we've shown the doorhanger but haven't sent the ping,
     // we assume that the doorhanger timed out
@@ -164,8 +148,12 @@ const rollout = {
     return decision;
   },
 
-  async getSetting(name) {
+  async getSetting(name, defaultValue) {
     let data = await browser.storage.local.get(name);
+    let value = data[name];
+    if (value === undefined) {
+      return defaultValue;
+    }
     return data[name];
   },
 
@@ -270,11 +258,14 @@ const rollout = {
 const setup = {
   enabled: false,
   async start() {
+    log("Start");
     let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
     if (!runAddon && !this.enabled) {
       log("First run");
     } else if (!runAddon) {
+      log("Disabling");
       this.enabled = false;
+      browser.storage.local.clear();
       await stateManager.setState("disabled");
     } else {
       this.enabled = true;
