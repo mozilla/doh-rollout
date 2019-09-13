@@ -124,8 +124,11 @@ async function comcastDomains() {
 
 // TODO: Confirm the expected behavior when filtering is on
 async function globalCanary() {
-  let {_, err} = await dnsLookup(GLOBAL_CANARY);
+  let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
   if (err === NXDOMAIN_ERR) {
+    return "disable_doh";
+  }
+  if (addresses.length === 0) {
     return "disable_doh";
   }
   return "enable_doh";
