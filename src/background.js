@@ -7,15 +7,7 @@ function log() {
   }
 }
 
-const TRR_URI_PREF = "network.trr.uri";
-const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
 const TRR_MODE_PREF = "network.trr.mode";
-
-const RESTORE_PREFS = [
-  TRR_URI_PREF,
-  TRR_DISABLE_ECS_PREF,
-  TRR_MODE_PREF,
-];
 
 const stateManager = {
   async setState(state) {
@@ -26,18 +18,13 @@ const stateManager = {
 
   async setPref(prefName, value) {
     let type = "string";
-    let defaultValue = "";
     if (typeof value == "number") {
       type = "int";
-      defaultValue = 0;
     } else if (typeof value == "boolean") {
       type = "bool";
-      defaultValue = false;
     }
 
-    let currentPrefValue = await browser.experiments.preferences.getUserPref(prefName, defaultValue);
-    await browser.storage.local.set({[prefName]: currentPrefValue});
-    log("setting pref", {prefName, value, currentPrefValue, type});
+    log("setting pref", {prefName, value, type});
     await browser.experiments.preferences.setPref(prefName, value, type);
   },
 
@@ -70,13 +57,12 @@ const stateManager = {
   async shouldRunHeuristics() {
     let prevMode = await browser.experiments.preferences.getUserPref(
       "doh-rollout.previous.trr.mode", 0);
-    let prevModeCheck = await browser.storage.local.get(TRR_MODE_PREF);
     let curMode = await browser.experiments.preferences.getUserPref(
       TRR_MODE_PREF, 0);
     let disableHeuristics = await browser.experiments.preferences.getUserPref(
       "doh-rollout.disable-heuristics", false);
     log("Comparing previous trr mode to current mode:",
-      prevMode, curMode, prevModeCheck);
+      prevMode, curMode);
 
     // Don't run heuristics if:
     //  1) Previous doesn't mode equals current mode, i.e. user overrode our changes
@@ -187,30 +173,11 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
-  async backup() {
-    for (let pref of RESTORE_PREFS) {
-      let prefValue = await browser.experiments.preferences.getUserPref(pref, null);
-      log("Got pref", pref, prefValue);
-      await this.setSetting(`restore.${pref}`, prefValue);
-    }
-  },
-
-  async restore() {
-    log("calling restore");
-    for (let pref of RESTORE_PREFS) {
-      let prefValue = await this.getSetting(`restore.${pref}`);
-      log("Restoring pref", pref, prefValue);
-      await stateManager.setPref(pref, prefValue);
-    }
-  },
-
   async init() {
-
     log("calling init");
     let doneFirstRun = await this.getSetting("doneFirstRun");
     if (!doneFirstRun) {
       log("first run!");
-      await this.backup();
       this.setSetting("doneFirstRun", true);
     } else {
       log("not first run!");
@@ -308,7 +275,7 @@ const setup = {
       log("First run");
     } else if (!runAddon) {
       this.enabled = false;
-      rollout.restore();
+      await stateManager.setState("disabled");
     } else {
       this.enabled = true;
       rollout.init();
