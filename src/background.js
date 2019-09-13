@@ -250,7 +250,7 @@ const rollout = {
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
       if (shouldRunHeuristics) {
         let decision = await rollout.heuristics("netChange");
-        if (decision === "disable_doh") {
+        if (netChangeDecision === "disable_doh") {
           await stateManager.setState("disabled");
         } else {
           await stateManager.setState("enabled");
