@@ -245,6 +245,7 @@ const rollout = {
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async (reason) => {
+      log("onConnectionChanged");
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
       if (shouldRunHeuristics) {
