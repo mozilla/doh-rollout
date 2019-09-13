@@ -58,12 +58,15 @@ const stateManager = {
     //
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that and never run the heuristics again
+
     if (disableHeuristics) {
       await stateManager.rememberTRRMode();
       return false;
-    } else if ((prevMode !== curMode) ||
-               (curMode === 5) ||
-               (curMode === 3)) {
+    } else if ( prevMode !== curMode ||  curMode === 5 ||  curMode === 3) {
+      // Add logic specific if user disables DoH in about:config:
+      if ( curMode === 0 ) {
+        await stateManager.setState("manuallyDisabled");
+      }
       await stateManager.rememberDisableHeuristics();
       await stateManager.rememberTRRMode();
       return false;
@@ -179,10 +182,16 @@ const rollout = {
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async (reason) => {
+      log("onConnectionChanged");
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
       if (shouldRunHeuristics) {
-        await rollout.main();
+        const netChangeDecision = await rollout.heuristics("netChange");
+        if (netChangeDecision === "disable_doh") {
+          await stateManager.setState("disabled");
+        } else {
+          await stateManager.setState("enabled");
+        }
       }
     });
   },

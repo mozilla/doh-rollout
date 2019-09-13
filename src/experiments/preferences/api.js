@@ -8,7 +8,7 @@ Cu2.import("resource://gre/modules/ExtensionSettingsStore.jsm");
 Cu2.import("resource://gre/modules/AddonManager.jsm");
 Cu2.import("resource://gre/modules/NetUtil.jsm");
 ChromeUtils.defineModuleGetter(this, "ExtensionPreferencesManager",
-                               "resource://gre/modules/ExtensionPreferencesManager.jsm");
+  "resource://gre/modules/ExtensionPreferencesManager.jsm");
 /* global ExtensionSettingsStore, AddonManager, NetUtil, ExtensionPreferencesManager */
 // TODO file scope issue on experiments that join extension contexts causing redeclaration issues.
 
@@ -35,6 +35,7 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
     case "disabled":
       prefs[TRR_MODE_PREF] = 0;
       break;
+    case "manuallyDisabled":
     case "UIOk":
     case "UITimeout":
     case "enabled":
