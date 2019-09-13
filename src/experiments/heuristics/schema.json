@@ -16,7 +16,7 @@
         "type": "function",
         "description": "Sends a ping for the results of the heuristics",
         "parameters": [
-          { 
+          {
             "name": "decision",
             "type": "string"
           },
