@@ -16,7 +16,7 @@
         "type": "function",
         "description": "Sends a ping for the results of the heuristics",
         "parameters": [
-          { 
+          {
             "name": "decision",
             "type": "string"
           },
@@ -50,6 +50,10 @@
               },
               "browserParent": {
                 "description": "Indicates whether browser has enabled parental controls",
+                "type": "string"
+              },
+              "thirdPartyRoots": {
+                "description": "Indicates whether third-party roots are enabled",
                 "type": "string"
               },
               "policy": {
@@ -89,6 +93,14 @@
         "name": "checkParentalControls",
         "type": "function",
         "description": "Checks for browser-based parental controls",
+        "parameters": [
+        ],
+        "async": true
+      },
+      {
+        "name": "checkThirdPartyRoots",
+        "type": "function",
+        "description": "Checks for third party roots",
         "parameters": [
         ],
         "async": true
