@@ -82,7 +82,7 @@ const heuristicsManager = {
     let allCerts = certdb.getCerts();
     for (let cert of allCerts.getEnumerator()) {
       if (certdb.isCertTrusted(cert, Ci.nsIX509Cert.CA_CERT, Ci.nsIX509CertDB.TRUSTED_SSL)) {
-        if (!cert.Es) {
+        if (!cert.isBuiltInRoot) {
           // this cert is a trust anchor that wasn't shipped with the browser
           return "disable_doh";
         }
