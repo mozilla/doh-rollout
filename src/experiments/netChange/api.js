@@ -7,12 +7,12 @@ Cu4.import("resource://gre/modules/ExtensionCommon.jsm");
 
 
 const { clearTimeout, setTimeout } = Cu4.import(
-    "resource://gre/modules/Timer.jsm"
+  "resource://gre/modules/Timer.jsm"
 );
 
 var {EventManager, EventEmitter} = ExtensionCommon;
 let gNetworkLinkService= Cc["@mozilla.org/network/network-link-service;1"]
-                         .getService(Ci.nsINetworkLinkService);
+  .getService(Ci.nsINetworkLinkService);
 
 
 function sleep(ms) {

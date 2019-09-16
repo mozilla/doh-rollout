@@ -82,26 +82,6 @@
         "async": true
       },
       {
-        "name": "setPref",
-        "type": "function",
-        "description": "Set a preference",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "name"
-          },
-          {
-            "type": "any",
-            "name": "value"
-          },
-          {
-            "type": "string",
-            "name": "type"
-          }
-        ],
-        "async": true 
-      },
-      {
         "name": "getUserPref",
         "type": "function",
         "description": "Get the value of a preference",
@@ -117,6 +97,12 @@
         ],
         "async": true 
       }
-    ]
+    ],
+    "properties": {
+      "state": {
+        "$ref": "types.Setting",
+        "description": "This property controls the proxy settings"
+      }
+    }
   }
 ]
