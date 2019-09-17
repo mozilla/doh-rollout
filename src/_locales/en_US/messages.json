@@ -6,7 +6,6 @@
   "extensionDescription": {
     "message": "Mozilla add-on that supports the roll-out of DoH"
   },
-
   "doorhangerName": {
     "message": "More secure, encrypted DNS lookups",
     "description": "Bold title is shown to ask the user if they wish to disable DoH"
@@ -15,7 +14,6 @@
     "message": "Your privacy matters. Firefox now securely routes your DNS requests whenever possible to a service provided by Cloudflare to protect you while you browse.",
     "description": "This text is shown to ask the user if they wish to disable DoH"
   },
-
   "doorhangerButtonOk": {
     "message": "OK, Got It",
     "description": "When the user clicks this they are confirming they know DoH is enabled"
