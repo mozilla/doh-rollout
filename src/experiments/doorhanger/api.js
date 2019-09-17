@@ -56,8 +56,8 @@ class DoorhangerEventEmitter extends EventEmitter {
 
     let learnMoreURL = Services.urlFormatter.formatURL("https://support.mozilla.org/%LOCALE%/kb/firefox-dns-over-https");
     const options = {
-      timeout: Date.now() + 900000,
       hideClose: true,
+      persistWhileVisible: true,
       persistent: true,
       autofocus: true,
       name,
