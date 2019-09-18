@@ -259,20 +259,8 @@ const setup = {
   enabled: false,
   async start() {
     log("Start");
-    let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
-    if (!runAddon && !this.enabled) {
-      log("First run");
-    } else if (!runAddon) {
-      log("Disabling");
-      this.enabled = false;
-      browser.storage.local.clear();
-      await stateManager.setState("disabled");
-    } else {
-      this.enabled = true;
-      rollout.init();
-    }
-
-    browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
+    this.enabled = true;
+    rollout.init();
   }
 };
 
