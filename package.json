@@ -8,7 +8,7 @@
 		"setup-shield": "./node_modules/.bin/copyStudyUtils src/experiments",
 		"ext-build": "cd src && web-ext build --overwrite-dest;",
 		"lint": "eslint .",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "eslint src test"
 	},
 	"repository": {
 		"type": "git",
