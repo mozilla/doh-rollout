@@ -54,6 +54,16 @@ class DoorhangerEventEmitter extends EventEmitter {
       },
     ];
 
+    let doorhangerEvents = event => {
+      // If additional event listening is needed, recommend switching
+      // to a switch case statement.
+      if (event !== "removed") {
+        return;
+      }
+      // On notification removal (switch away from active tab, close tab), enable DoH preference 
+      self.emit("doorhanger-accept", tabId);
+    };
+
     let learnMoreURL = Services.urlFormatter.formatURL("https://support.mozilla.org/%LOCALE%/kb/firefox-dns-over-https");
     const options = {
       hideClose: true,
@@ -64,6 +74,8 @@ class DoorhangerEventEmitter extends EventEmitter {
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
       learnMoreURL,
       escAction: "buttoncommand",
+      eventCallback: doorhangerEvents,
+      removeOnDismissal: true,
     };
     recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
   }
