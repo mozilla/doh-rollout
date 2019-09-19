@@ -238,7 +238,7 @@ const rollout = {
       );
       await browser.experiments.doorhanger.show({
         name: browser.i18n.getMessage("doorhangerName"),
-        text: "<> " + browser.i18n.getMessage("doorhangerText"),
+        text: "<> " + browser.i18n.getMessage("doorhangerBody"),
         okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
         okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
         cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
