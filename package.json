@@ -1,29 +1,35 @@
 {
-  "name": "doh-rollout",
-  "version": "0.0.6",
-  "description": "DoH Roll-Out",
-  "main": ".eslintrc.js",
-  "scripts": {
-    "build": "mkdir src/lib/; npm run ext-build && npm run setup-shield",
-    "setup-shield": "./node_modules/.bin/copyStudyUtils src/experiments",
-    "ext-build": "cd src && web-ext build --overwrite-dest;",
-    "lint": "eslint .",
-    "test": "eslint src test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mozilla/doh-rollout.git"
-  },
-  "author": "Austin Hounsel",
-  "license": "MPL-2.0",
-  "bugs": {
-    "url": "https://github.com/mozilla/doh-rollout/issues"
-  },
-  "homepage": "https://github.com/mozilla/doh-rollout#readme",
-  "dependencies": {
-    "shield-studies-addon-utils": "^5.2.1"
-  },
-  "devDependencies": {
-    "eslint": "^4.19.1"
-  }
+	"name": "doh-rollout",
+	"version": "0.0.6",
+	"description": "DoH Roll-Out",
+	"main": "background.js",
+	"scripts": {
+		"build": "mkdir src/lib/; npm run ext-build && npm run setup-shield",
+		"setup-shield": "./node_modules/.bin/copyStudyUtils src/experiments",
+		"ext-build": "cd src && web-ext build --overwrite-dest;",
+		"lint": "eslint .",
+		"test": "eslint src test"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:mozilla/doh-rollout.git"
+	},
+	"keywords": [
+		"addon",
+		"firefox",
+		"mozilla"
+	],
+	"author": "Mozilla Developers",
+	"license": "MPL-2.0",
+	"bugs": {
+		"url": "https://github.com/mozilla/doh-rollout/issues"
+	},
+	"homepage": "https://github.com/mozilla/doh-rollout#readme",
+	"dependencies": {
+		"shield-studies-addon-utils": "^5.2.1",
+		"web-ext": "^3.1.1"
+	},
+	"devDependencies": {
+		"eslint": "^4.19.1"
+	}
 }
