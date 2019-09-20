@@ -95,7 +95,19 @@
             "name": "value"
           }
         ],
-        "async": true 
+        "async": true
+      },
+      {
+        "name": "prefHasUserValue",
+        "type": "function",
+        "description": "Check if the user has set a value of a preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          }
+        ],
+        "async": true
       }
     ],
     "properties": {
