@@ -1,32 +1,31 @@
 {
   "extensionName": {
-    "message": "DoH Roll-Out",
+    "message": "Lanzamiento de DoH", 
     "description": "DNS over HTTPS add-on name for a gradual release of DoH"
-  },
+  }, 
   "extensionDescription": {
-    "message": "Mozilla add-on that supports the roll-out of DoH"
-  },
+    "message": "Complemento de Mozilla para el lanzamiento de DoH"
+  }, 
   "doorhangerName": {
-    "message": "More secure, encrypted DNS lookups",
+    "message": "Búsquedas de DNS cifradas y más seguras", 
     "description": "Bold title is shown to ask the user if they wish to disable DoH"
-  },
+  }, 
   "doorhangerBody": {
-    "message": "Your privacy matters. Firefox now securely routes your DNS requests whenever possible to a service provided by Cloudflare to protect you while you browse.",
+    "message": "Tu privacidad es importante. Firefox ahora enruta de forma segura tus solicitudes de DNS siempre que sea posible a un servicio proporcionado por Cloudflare para protegerlo mientras navega.", 
     "description": "This text is shown to ask the user if they wish to disable DoH"
-  },
+  }, 
   "doorhangerButtonOk": {
-    "message": "OK, Got It",
+    "message": "OK, entendido", 
     "description": "When the user clicks this they are confirming they know DoH is enabled"
-  },
+  }, 
   "doorhangerButtonOkAccessKey": {
     "message": "O"
-  },
+  }, 
   "doorhangerButtonCancel": {
-    "message": "Disable Protection",
+    "message": "Deshabilitar protección", 
     "description": "Pressing this button disables DoH"
-  },
+  }, 
   "doorhangerButtonCancelAccessKey": {
     "message": "D"
   }
-
 }
