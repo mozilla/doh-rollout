@@ -1,0 +1,13 @@
+{
+  "extensionName": {
+    "message": "Развертывание DoH", 
+    "description": "DNS over HTTPS add-on name for a gradual release of DoH"
+  }, 
+  "extensionDescription": {
+    "message": "Дополнение Mozilla, поддерживающее развертывание DoH"
+  }, 
+  "doorhangerName": {
+    "message": "Более безопасный, зашифрованный поиск адресов сайтов в DNS", 
+    "description": "Bold title is shown to ask the user if they wish to disable DoH"
+  }
+}
