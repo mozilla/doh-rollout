@@ -15,7 +15,7 @@ The event extras include:
 * `modifiedRoots`: whether the `security.enterprise_roots.enabled` pref is true
 * `browserParent`: whether Firefox parental controls are enabled
 * `thirdPartyRoots`: if third-party roots are included in the Firefox trust store
-* `policy`: if DoH is blocked by enterprise policy
+* `policy`: if Firefox enterprise policies are active and DoH is not explicitly allowed
 * `evaluateReason`: why heuristics were evaluated
 
 # State events
