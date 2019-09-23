@@ -38,8 +38,8 @@ var netChange = class netChange extends ExtensionAPI {
                 }
 
                 if (data === "changed") {
-                  // We will coalesce event that are less than 5s apart.
-                  if ( Date.now() - last_event > 5000 &&  gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
+                  // We will coalesce event that are less than 30s apart.
+                  if ( Date.now() - last_event > 30000 &&  gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
                     last_event = Date.now();
                     fire.async(data);
                   }
