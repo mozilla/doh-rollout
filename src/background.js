@@ -43,10 +43,18 @@ const stateManager = {
   },
 
   async shouldRunHeuristics() {
+    // Check if heursitics has been disabled from rememberDisableHeuristics()
+    let disableHeuristics = await rollout.getSetting("doh-rollout.disable-heuristics", false);
+    if (disableHeuristics) {
+      // Do not modify DoH for this user.
+      log("disableHeuristics has been enabled.");
+      return false;
+    }
+
     let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
     let curMode = await browser.experiments.preferences.getUserPref(
       TRR_MODE_PREF, 0);
-    let disableHeuristics = await rollout.getSetting("doh-rollout.disable-heuristics", false);
+
     log("Comparing previous trr mode to current mode:",
       prevMode, curMode);
 
@@ -59,19 +67,22 @@ const stateManager = {
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that and never run the heuristics again
 
-    if (disableHeuristics) {
-      await stateManager.rememberTRRMode();
-      return false;
-    } else if ( prevMode !== curMode ||  curMode === 5 ||  curMode === 3) {
-      // Add logic specific if user disables DoH in about:config:
-      if ( curMode === 0 ) {
-        await stateManager.setState("manuallyDisabled");
+    // On Mismatch - run never run again (make init check a function)
+
+    if (prevMode !== curMode) {
+      log("Mismatched, curMode: ", curMode);
+      if (curMode === 0) {
+        // If user has manually set trr.mode to 0, and it was previously something else.
+        await stateManager.rememberDisableHeuristics();
+      } else {
+        // Check if trr.mode is not in default value.
+        await rollout.trrModePrefHasUserValueCheck();
       }
-      await stateManager.rememberDisableHeuristics();
-      await stateManager.rememberTRRMode();
       return false;
     }
+
     return true;
+
   },
 
   async shouldShowDoorhanger() {
@@ -107,6 +118,7 @@ const rollout = {
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
+    await stateManager.rememberDisableHeuristics();
   },
 
   async netChangeListener(reason) {
@@ -161,12 +173,30 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
+  async trrModePrefHasUserValueCheck() {
+    log("trrModePrefHasUserValueCheck");
+    // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
+    // This runs only on the FIRST time that add-on is enabled, and if the stored pref
+    // mismatches the current pref (Meaning something outside of the add-on has changed it
+    if (
+      await browser.experiments.preferences.prefHasUserValue(
+        TRR_MODE_PREF)
+    ) {
+      // TODO: Add telemtery ping for user who already has pref on DoH
+      await stateManager.rememberDisableHeuristics();
+      return;
+    }
+  },
+
   async init() {
     log("calling init");
     let doneFirstRun = await this.getSetting("doneFirstRun");
+
     if (!doneFirstRun) {
       log("first run!");
       this.setSetting("doneFirstRun", true);
+      await this.trrModePrefHasUserValueCheck();
+
     } else {
       log("not first run!");
     }

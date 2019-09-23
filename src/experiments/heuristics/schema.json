@@ -32,14 +32,6 @@
                 "description": "Indicates whether YouTube safe-search is enabled",
                 "type": "string"
               },
-              "comcastProtect": {
-                "description": "Indicates whether Comcast's malware filter is enabled",
-                "type": "string"
-              },
-              "comcastParent": {
-                "description": "Indicates whether Comcast's parental controls are enabled",
-                "type": "string"
-              },
               "canary": {
                 "description": "Indicates whether global canary domain was filtered",
                 "type": "string"

@@ -90,38 +90,6 @@ async function safeSearch() {
   return safeSearchChecks;
 }
 
-
-async function comcastDomains() {
-  const canaryList = [
-    {
-      type: "malware",
-      check: ["test.xfiprotectedbrowsing.com"]
-    },
-    {
-      type: "parental",
-      check: ["test.xfiparentalcontrols.com"]
-    }
-  ];
-
-  let canaryChecks = {};
-  for (let i = 0; i < canaryList.length; i++) {
-    let canaryObj = canaryList[i];
-    let canaryType = canaryObj.type;
-    canaryChecks[canaryType] = "enable_doh";
-
-    // If NXDOMAIN is not returned, we infer that content filters are on
-    let canaryAnswers = await dnsListLookup(canaryObj.check);
-    for (let j = 0; j < canaryAnswers.length; j++) {
-      let answer = canaryAnswers[j];
-      if (answer) {
-        canaryChecks[canaryType] = "disable_doh";
-      }
-    }
-  }
-  return canaryChecks;
-}
-
-
 // TODO: Confirm the expected behavior when filtering is on
 async function globalCanary() {
   let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
@@ -146,7 +114,6 @@ async function modifiedRoots() {
 
 async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
-  let comcastChecks = await comcastDomains();
   let canaryCheck = await globalCanary();
   let modifiedRootsCheck = await modifiedRoots();
 
@@ -158,8 +125,6 @@ async function runHeuristics() {
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
     "youtube": safeSearchChecks.youtube,
-    "comcastProtect": comcastChecks.malware,
-    "comcastParent": comcastChecks.parental,
     "canary": canaryCheck,
     "modifiedRoots": modifiedRootsCheck,
     "browserParent": browserParentCheck,

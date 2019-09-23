@@ -32,9 +32,9 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
     case "uninstalled":
       break;
     case "disabled":
-      prefs[TRR_MODE_PREF] = 0;
       break;
     case "manuallyDisabled":
+      break;
     case "UIOk":
     case "UITimeout":
     case "enabled":
@@ -49,6 +49,9 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
 });
 
 const prefManager = {
+  prefHasUserValue(name) {
+    return Services.prefs.prefHasUserValue(name);
+  },
   getUserPref(name, value) {
     if (!Services.prefs.prefHasUserValue(name)) {
       return value;
@@ -76,6 +79,10 @@ var preferences = class preferences extends ExtensionAPI {
         preferences: {
           async getUserPref(name, value) {
             return prefManager.getUserPref(name, value);
+          },
+
+          async prefHasUserValue(name) {
+            return prefManager.prefHasUserValue(name);
           },
 
           onPrefChanged: new EventManager({
