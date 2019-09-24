@@ -104,9 +104,14 @@ async function globalCanary() {
 
 
 async function modifiedRoots() {
+  // Check for presence of both enterprise_roots and if enterprise_roots.auto-enabled
+  // is false. (Firefox flips enterprise_roots.auto-enabled to true in some MITM detection cases.)
+  // We only want to disable DoH when the user has turned enterprise_roots on manually. 
   let rootsEnabled = await browser.experiments.preferences.getUserPref(
     "security.enterprise_roots.enabled", false);
-  if (rootsEnabled) {
+  let rootsAutoEnabled = await browser.experiments.preferences.getUserPref(
+    "security.enterprise_roots.auto-enabled", false);
+  if (rootsEnabled && !rootsAutoEnabled) {
     return "disable_doh";
   }
   return "enable_doh";
