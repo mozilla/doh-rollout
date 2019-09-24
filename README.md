@@ -28,6 +28,8 @@ This will run heuristics against your network settings to determine if DoH can s
 
 To check if DoH is turned on, check the value of pref `network.trr.mode`. If it is enabled, it will be set to `2`.
 
+[Telemetry][telemetry-schema-link] will be sent each time heuristics are evaluated.
+
 ## Dependencies
 
 - [web-ext](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Getting_started_with_web-ext)
@@ -50,6 +52,7 @@ This module is licensed under the [Mozilla Public License, version 2.0][license-
 [coc-link]: docs/code_of_conduct.md
 [security-link]: docs/security.md
 [license-link]: /LICENSE
+[telemetry-schema-link]: docs/telemetry.md
 
 ## Press Releases
 
