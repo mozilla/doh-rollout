@@ -65,8 +65,8 @@ const heuristicsManager = {
       }
     }
 
-    // Enable DoH by default
-    return "enable_doh";
+    // Default return, meaning no policy rekated to DNSOverHTTPS
+    return "no_policy_set";
   },
 
   async checkParentalControls() {

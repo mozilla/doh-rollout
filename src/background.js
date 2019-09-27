@@ -11,6 +11,7 @@ const TRR_MODE_PREF = "network.trr.mode";
 
 const stateManager = {
   async setState(state) {
+    log("setState: ", state);
     browser.experiments.preferences.state.set({ value: state });
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
@@ -78,7 +79,7 @@ const stateManager = {
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
-        await rollout.trrModePrefHasUserValueCheck();
+        await rollout.enterprisePolicyAndTRRModePrefHasUserValueCheck("shouldRunHeuristics_mismatch");
       }
       return false;
     }
@@ -193,8 +194,37 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
-  async trrModePrefHasUserValueCheck() {
-    log("trrModePrefHasUserValueCheck");
+  async enterprisePolicyAndTRRModePrefHasUserValueCheck(event) {
+    // Check for Policies before EVERYTHING else
+    let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
+
+    // Cache heuristics info in case a ping about a policy discovery event is sent
+    let results = await runHeuristics();
+    results.evaluateReason = event;
+
+    switch (policyEnableDoH) {
+    case "enable_doh":
+      log("Policy requires DoH enabled.");
+      await stateManager.setState("enabled");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
+    case "disable_doh":
+      log("Policy requires DoH to be disabled.");
+      await stateManager.setState("disabled");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
+    case "no_policy_set":
+    }
+
+    if (policyEnableDoH === "enable_doh" || policyEnableDoH === "disable_doh") {
+      // Don't check for prefHasUserValue if policy is set to disable DoH
+      this.setSetting("skipHeuristicsCheck", true);
+      return;
+    }
+
+    // Reset skipHeuristicsCheck
+    this.setSetting("skipHeuristicsCheck", false);
+
     // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
     // This runs only on the FIRST time that add-on is enabled, and if the stored pref
     // mismatches the current pref (Meaning something outside of the add-on has changed it
@@ -206,29 +236,36 @@ const rollout = {
       await stateManager.rememberDisableHeuristics();
       return;
     }
+
   },
 
   async init() {
     log("calling init");
     let doneFirstRun = await this.getSetting("doneFirstRun");
 
+    // Register the events for sending pings
+    browser.experiments.heuristics.setupTelemetry();
+
     if (!doneFirstRun) {
       log("first run!");
       this.setSetting("doneFirstRun", true);
-      await this.trrModePrefHasUserValueCheck();
-
+      await this.enterprisePolicyAndTRRModePrefHasUserValueCheck("first_run");
     } else {
       log("not first run!");
     }
 
-    // Register the events for sending pings
-    browser.experiments.heuristics.setupTelemetry();
-
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-    if (shouldRunHeuristics) {
-      await rollout.main();
+    let skipHeuristicsCheck = await this.getSetting("skipHeuristicsCheck");
+    log("skipHeuristicsCheck: ", skipHeuristicsCheck);
+
+
+    if (!skipHeuristicsCheck) {
+      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+      if (shouldRunHeuristics) {
+        await rollout.main();
+      }
     }
+
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async (reason) => {
