@@ -24,6 +24,8 @@ const stateManager = {
   },
 
   async rememberDoorhangerShown() {
+    // This will be shown on startup and netChange events until a user clicks
+    // to confirm/disable DoH or presses the esc key (confirming)
     log("Remembering that doorhanger has been shown");
     await rollout.setSetting("doh-rollout.doorhanger-shown", true);
   },
@@ -91,7 +93,32 @@ const stateManager = {
     let doorhangerPingSent = await rollout.getSetting("doh-rollout.doorhanger-ping-sent", false);
     log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
+  },
+
+  async showDoorHangerAndEnableDoH() {
+    browser.experiments.doorhanger.onDoorhangerAccept.addListener(
+      rollout.doorhangerAcceptListener
+    );
+    browser.experiments.doorhanger.onDoorhangerDecline.addListener(
+      rollout.doorhangerDeclineListener
+    );
+    await browser.experiments.doorhanger.show({
+      name: browser.i18n.getMessage("doorhangerName"),
+      text: "<> " + browser.i18n.getMessage("doorhangerBody"),
+      okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
+      okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
+      cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
+      cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
+    });
+
+    // Be default, enable DoH when showing the doorhanger,
+    // if heuristics returned no reason to not run.
+    await stateManager.setState("enabled");
+    return;
   }
+
+
+
 };
 
 
@@ -103,6 +130,7 @@ const rollout = {
     await stateManager.setState("UIOk");
     await stateManager.rememberDoorhangerDecision("UIOk");
     await stateManager.rememberDoorhangerPingSent();
+    await stateManager.rememberDoorhangerShown();
   },
 
   async doorhangerDeclineListener(tabId) {
@@ -111,6 +139,7 @@ const rollout = {
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
     await stateManager.rememberDisableHeuristics();
+    await stateManager.rememberDoorhangerShown();
   },
 
   async netChangeListener(reason) {
@@ -245,10 +274,14 @@ const rollout = {
       log("onConnectionChanged");
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+      let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
+
       if (shouldRunHeuristics) {
         const netChangeDecision = await rollout.heuristics("netChange");
         if (netChangeDecision === "disable_doh") {
           await stateManager.setState("disabled");
+        } else if (shouldShowDoorhanger) {
+          await stateManager.showDoorHangerAndEnableDoH();
         } else {
           await stateManager.setState("enabled");
         }
@@ -290,28 +323,14 @@ const rollout = {
     // If the heuristics say to enable DoH, determine if the doorhanger
     // should be shown
     } else if (shouldShowDoorhanger) {
-      browser.experiments.doorhanger.onDoorhangerAccept.addListener(
-        rollout.doorhangerAcceptListener
-      );
-      browser.experiments.doorhanger.onDoorhangerDecline.addListener(
-        rollout.doorhangerDeclineListener
-      );
-      await browser.experiments.doorhanger.show({
-        name: browser.i18n.getMessage("doorhangerName"),
-        text: "<> " + browser.i18n.getMessage("doorhangerBody"),
-        okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
-        okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
-        cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
-        cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
-      });
-
-      await stateManager.rememberDoorhangerShown();
-
-    // If the doorhanger doesn't need to be shown and the heuristics
-    // say to enable DoH, enable it
+      await stateManager.showDoorHangerAndEnableDoH();
     } else {
+      // Doorhanger has been shown before and did not opt-out
       await stateManager.setState("enabled");
     }
+
+
+
   },
 };
 
