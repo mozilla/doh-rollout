@@ -1,5 +1,6 @@
 "use strict";
 /* global browser */
+/* exported runHeuristics */
 
 
 const GLOBAL_CANARY = "use-application-dns.net";
@@ -27,7 +28,7 @@ async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    let {addresses, _} = await dnsLookup(domain);
+    let {addresses} = await dnsLookup(domain);
     results = results.concat(addresses);
   }
   return results;

@@ -1,6 +1,7 @@
 "use strict";
-/* global Services, ChromeUtils, BrowserWindowTracker, 
+/* global Services, ChromeUtils, BrowserWindowTracker,
    ExtensionCommon, ExtensionAPI */
+/* exported doorhanger */
 
 ChromeUtils.import("resource://gre/modules/Console.jsm");
 ChromeUtils.import("resource://gre/modules/Services.jsm");
