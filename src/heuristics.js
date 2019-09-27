@@ -90,6 +90,22 @@ async function safeSearch() {
   return safeSearchChecks;
 }
 
+
+async function zscalerCanary() {
+  const ZSCALER_CANARY = "www.justmalicious.com";
+  let {addresses, _} = await dnsLookup(ZSCALER_CANARY);
+  for (let j = 0; j < addresses.length; j++) {
+    let answer = addresses[j];
+    if (answer == "52.10.123.63" || answer == "52.41.181.205") {
+      // if www.justmalicious.com resolves to either one of the two IPs above,
+      // Zscaler Shift service is in use, don't enable DoH
+      return "disable_doh";
+    }
+  }
+  return "enable_doh"
+}
+
+
 // TODO: Confirm the expected behavior when filtering is on
 async function globalCanary() {
   let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
@@ -115,6 +131,7 @@ async function modifiedRoots() {
 
 async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
+  let zscalerCheck = await zscalerCanary();
   let canaryCheck = await globalCanary();
   let modifiedRootsCheck = await modifiedRoots();
 
@@ -126,6 +143,7 @@ async function runHeuristics() {
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
     "youtube": safeSearchChecks.youtube,
+    "zscalerCanary": zscalerCheck,
     "canary": canaryCheck,
     "modifiedRoots": modifiedRootsCheck,
     "browserParent": browserParentCheck,
