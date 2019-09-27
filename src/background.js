@@ -74,7 +74,7 @@ const stateManager = {
 
     if (prevMode !== curMode) {
       log("Mismatched, curMode: ", curMode);
-      if (curMode === 0) {
+      if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
         await stateManager.rememberDisableHeuristics();
       } else {
@@ -225,6 +225,8 @@ const rollout = {
     // Reset skipHeuristicsCheck
     this.setSetting("skipHeuristicsCheck", false);
 
+    // TODO: Flip Policy Check and User Pref Check + Update Notes
+
     // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
     // This runs only on the FIRST time that add-on is enabled, and if the stored pref
     // mismatches the current pref (Meaning something outside of the add-on has changed it
@@ -232,7 +234,7 @@ const rollout = {
       await browser.experiments.preferences.prefHasUserValue(
         TRR_MODE_PREF)
     ) {
-      // TODO: Add telemtery ping for user who already has pref on DoH
+      // TODO: Add telemtery ping for user who already has pref on DoH!
       await stateManager.rememberDisableHeuristics();
       return;
     }
