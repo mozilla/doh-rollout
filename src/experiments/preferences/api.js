@@ -36,7 +36,6 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
     case "manuallyDisabled":
       break;
     case "UIOk":
-    case "UITimeout":
     case "enabled":
       prefs[TRR_MODE_PREF] = 2;
       break;

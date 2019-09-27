@@ -88,15 +88,6 @@ const stateManager = {
   async shouldShowDoorhanger() {
     let doorhangerShown = await rollout.getSetting("doh-rollout.doorhanger-shown", false);
     let doorhangerPingSent = await rollout.getSetting("doh-rollout.doorhanger-ping-sent", false);
-
-    // If we've shown the doorhanger but haven't sent the ping,
-    // we assume that the doorhanger timed out
-    if (doorhangerShown && !(doorhangerPingSent)) {
-      await stateManager.setState("UITimeout");
-      await stateManager.rememberDoorhangerDecision("UITimeout");
-      await stateManager.rememberDoorhangerPingSent();
-    }
-
     log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
   }

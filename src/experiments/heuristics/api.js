@@ -25,7 +25,7 @@ const TELEMETRY_EVENTS = {
   "state": {
     methods: ["state"],
     objects: ["loaded", "enabled", "disabled", "manuallyDisabled", "uninstalled",
-      "UIOk", "UIDisabled", "UITimeout"],
+      "UIOk", "UIDisabled"],
     extra_keys: [],
     record_on_release: true,
   }
