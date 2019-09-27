@@ -79,7 +79,7 @@ const stateManager = {
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
-        await rollout.enterprisePolicyAndTRRModePrefHasUserValueCheck("shouldRunHeuristics_mismatch");
+        await rollout.trrModePrefHasUserValueAndEnterprisePolicyCheck("shouldRunHeuristics_mismatch");
       }
       return false;
     }
@@ -194,13 +194,52 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
-  async enterprisePolicyAndTRRModePrefHasUserValueCheck(event) {
-    // Check for Policies before EVERYTHING else
-    let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
+  async decodeTrrMode(number){
+    // This turns whatever trr.mode pref the user set into either enable_doh or disable_doh.
+    let dohStatus;
+    switch (number) {
+    case 0:
+      dohStatus = "disable_doh";
+      break;
+    case 2:
+      dohStatus = "enable_doh";
+      break;
+    case 3:
+      dohStatus = "enable_doh";
+      break;
+    case 5:
+      dohStatus = "disable_doh";
+      break;
+    }
+    return dohStatus;
+  },
 
+  async trrModePrefHasUserValueAndEnterprisePolicyCheck(event) {
     // Cache heuristics info in case a ping about a policy discovery event is sent
     let results = await runHeuristics();
     results.evaluateReason = event;
+
+    // Reset skipHeuristicsCheck
+    this.setSetting("skipHeuristicsCheck", false);
+
+    // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
+    // This runs only on the FIRST time that add-on is enabled and if the stored pref
+    // mismatches the current pref (Meaning something outside of the add-on has changed it)
+
+    if (
+      await browser.experiments.preferences.prefHasUserValue(
+        TRR_MODE_PREF)
+    ) {
+      let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
+      curMode = await this.decodeTrrMode(curMode);
+      // Send ping that user had specific trr.mode pref set before add-on study was ran.
+      browser.experiments.heuristics.sendHeuristicsPing(curMode, results);
+      await stateManager.rememberDisableHeuristics();
+      return;
+    }
+
+    // Check for Policies before running the rest of the heuristics
+    let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
 
     switch (policyEnableDoH) {
     case "enable_doh":
@@ -216,29 +255,12 @@ const rollout = {
     case "no_policy_set":
     }
 
+    // Determine to skip additional heuristics (by presence of an enterprise policy)
     if (policyEnableDoH === "enable_doh" || policyEnableDoH === "disable_doh") {
       // Don't check for prefHasUserValue if policy is set to disable DoH
       this.setSetting("skipHeuristicsCheck", true);
-      return;
     }
-
-    // Reset skipHeuristicsCheck
-    this.setSetting("skipHeuristicsCheck", false);
-
-    // TODO: Flip Policy Check and User Pref Check + Update Notes
-
-    // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
-    // This runs only on the FIRST time that add-on is enabled, and if the stored pref
-    // mismatches the current pref (Meaning something outside of the add-on has changed it
-    if (
-      await browser.experiments.preferences.prefHasUserValue(
-        TRR_MODE_PREF)
-    ) {
-      // TODO: Add telemtery ping for user who already has pref on DoH!
-      await stateManager.rememberDisableHeuristics();
-      return;
-    }
-
+    return;
   },
 
   async init() {
@@ -251,7 +273,7 @@ const rollout = {
     if (!doneFirstRun) {
       log("first run!");
       this.setSetting("doneFirstRun", true);
-      await this.enterprisePolicyAndTRRModePrefHasUserValueCheck("first_run");
+      await this.trrModePrefHasUserValueAndEnterprisePolicyCheck("first_run");
     } else {
       log("not first run!");
     }
@@ -259,7 +281,6 @@ const rollout = {
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let skipHeuristicsCheck = await this.getSetting("skipHeuristicsCheck");
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
-
 
     if (!skipHeuristicsCheck) {
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
