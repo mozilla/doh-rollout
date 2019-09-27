@@ -1,0 +1,36 @@
+version: 2.1
+
+orbs:
+  jq: circleci/jq@1.9.0
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:10
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run: npm install
+
+      - run: npm run lint
+
+      - run:
+          name: Add git information to version
+          command: |
+            proj_version=$(git describe)
+            echo "Setting version to ${proj_version}"
+            new_manifest=$(cat src/manifest.json | jq ".version = \"${proj_version}\"")
+            echo $new_manifest > src/manifest.json
+
+      - run:
+          name: Build XPI
+          command: |
+            npm run build
+            BASE=$(basename dist/*.zip .zip)
+            mv dist/$BASE.zip dist/$BASE.xpi
+
+      - store_artifacts:
+          path: dist
