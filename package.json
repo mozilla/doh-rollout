@@ -4,9 +4,7 @@
 	"description": "DoH Roll-Out",
 	"main": "background.js",
 	"scripts": {
-		"build": "mkdir src/lib/; npm run ext-build && npm run setup-shield",
-		"setup-shield": "./node_modules/.bin/copyStudyUtils src/experiments",
-		"ext-build": "cd src && web-ext build --overwrite-dest;",
+		"build": "web-ext build --overwrite-dest --source-dir src",
 		"lint": "eslint .",
 		"test": "eslint src test"
 	},
@@ -26,7 +24,6 @@
 	},
 	"homepage": "https://github.com/mozilla/doh-rollout#readme",
 	"dependencies": {
-		"shield-studies-addon-utils": "^5.2.1",
 		"web-ext": "^3.1.1"
 	},
 	"devDependencies": {
