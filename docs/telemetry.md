@@ -12,6 +12,7 @@ The event extras include:
 * `google`: whether the resolver configured by the OS uses [forced SafeSearch]
 * `youtube`: whether the resolver configured by the OS resolves YouTube to restricted YouTube
 * `canary`: whether the resolver configured by the OS uses the [application DNS canary] to request that application DNS (like DoH) is disabled
+* `zscalerCanary`: whether the Zscaler's Shift service is being used on the network
 * `modifiedRoots`: whether the `security.enterprise_roots.enabled` pref is true
 * `browserParent`: whether Firefox parental controls are enabled
 * `thirdPartyRoots`: if third-party roots are included in the Firefox trust store

@@ -19,7 +19,7 @@ const TELEMETRY_EVENTS = {
   "evaluate": {
     methods: [ "evaluate" ],
     objects: [ "heuristics" ],
-    extra_keys: ["google", "youtube", "canary", "modifiedRoots", "browserParent", "thirdPartyRoots", "policy", "evaluateReason"],
+    extra_keys: ["google", "youtube", "zscalerCanary", "canary", "modifiedRoots", "browserParent", "thirdPartyRoots", "policy", "evaluateReason"],
     record_on_release: true,
   },
   "state": {
