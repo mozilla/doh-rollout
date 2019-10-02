@@ -94,7 +94,7 @@ async function safeSearch() {
 
 async function zscalerCanary() {
   const ZSCALER_CANARY = "www.justmalicious.com";
-  let {addresses, _} = await dnsLookup(ZSCALER_CANARY);
+  let {addresses} = await dnsLookup(ZSCALER_CANARY);
   for (let j = 0; j < addresses.length; j++) {
     let answer = addresses[j];
     if (answer == "52.10.123.63" || answer == "52.41.181.205") {
@@ -103,7 +103,7 @@ async function zscalerCanary() {
       return "disable_doh";
     }
   }
-  return "enable_doh"
+  return "enable_doh";
 }
 
 
