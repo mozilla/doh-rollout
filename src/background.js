@@ -76,6 +76,7 @@ const stateManager = {
       log("Mismatched, curMode: ", curMode);
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
+        browser.experiments.heuristics.sendHeuristicsPing("userModified", results);
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
@@ -117,8 +118,6 @@ const stateManager = {
     return;
   }
 
-
-
 };
 
 
@@ -138,6 +137,7 @@ const rollout = {
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
+    browser.experiments.heuristics.sendHeuristicsPing("doorhangerDecline", results);
     await stateManager.rememberDisableHeuristics();
     await stateManager.rememberDoorhangerShown();
   },
@@ -194,26 +194,6 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
-  async decodeTrrMode(number){
-    // This turns whatever trr.mode pref the user set into either enable_doh or disable_doh.
-    let dohStatus;
-    switch (number) {
-    case 0:
-      dohStatus = "disable_doh";
-      break;
-    case 2:
-      dohStatus = "enable_doh";
-      break;
-    case 3:
-      dohStatus = "enable_doh";
-      break;
-    case 5:
-      dohStatus = "disable_doh";
-      break;
-    }
-    return dohStatus;
-  },
-
   async trrModePrefHasUserValueAndEnterprisePolicyCheck(event) {
     // Cache heuristics info in case a ping about a policy discovery event is sent
     let results = await runHeuristics();
@@ -230,10 +210,9 @@ const rollout = {
       await browser.experiments.preferences.prefHasUserValue(
         TRR_MODE_PREF)
     ) {
-      let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
-      curMode = await this.decodeTrrMode(curMode);
       // Send ping that user had specific trr.mode pref set before add-on study was ran.
-      browser.experiments.heuristics.sendHeuristicsPing(curMode, results);
+      // Note that this does not include the trr.mode - just that the addon cannot be ran.
+      browser.experiments.heuristics.sendHeuristicsPing("prefHasUserValue", results);
       await stateManager.rememberDisableHeuristics();
       return;
     }
@@ -349,9 +328,6 @@ const rollout = {
       // Doorhanger has been shown before and did not opt-out
       await stateManager.setState("enabled");
     }
-
-
-
   },
 };
 
