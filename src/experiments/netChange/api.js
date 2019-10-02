@@ -19,9 +19,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let last_event = Date.now();
+let netChangeWaiting = false;
 
-var netChange = class netChange extends ExtensionAPI { 
+var netChange = class netChange extends ExtensionAPI {
   getAPI(context) {
     return {
       experiments: {
@@ -31,17 +31,16 @@ var netChange = class netChange extends ExtensionAPI {
             name: "netChange.onConnectionChanged",
             register: fire => {
               let observer = async (subject, topic, data) => {
-                // if we get "up" event we should fire an event.
-                if (data === "up") {
-                  last_event = Date.now();
-                  fire.async(data);
-                }
+                if (netChangeWaiting == false) {
+                  if (data === "changed" || data === "up") {
+                    netChangeWaiting = true;
+                    await sleep(5000);
 
-                if (data === "changed") {
-                  // We will coalesce event that are less than 30s apart.
-                  if ( Date.now() - last_event > 30000 &&  gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
-                    last_event = Date.now();
-                    fire.async(data);
+                    if (gNetworkLinkService.linkStatusKnown &&
+                       gNetworkLinkService.isLinkUp) {
+                      fire.async(data);
+                    }
+                    netChangeWaiting = false;
                   }
                 }
               };
