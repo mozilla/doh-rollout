@@ -78,7 +78,7 @@ const stateManager = {
       log("Mismatched, curMode: ", curMode);
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
-        // eslint-disable-next-line no-undef
+        let results = await runHeuristics();
         browser.experiments.heuristics.sendHeuristicsPing("userModified", results);
         await stateManager.rememberDisableHeuristics();
       } else {
@@ -139,7 +139,7 @@ const rollout = {
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
-    // eslint-disable-next-line no-undef
+    let results = await runHeuristics();
     browser.experiments.heuristics.sendHeuristicsPing("doorhangerDecline", results);
     await stateManager.rememberDisableHeuristics();
     await stateManager.rememberDoorhangerShown();
