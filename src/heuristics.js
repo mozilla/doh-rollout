@@ -1,5 +1,6 @@
 "use strict";
 /* global browser */
+/* exported runHeuristics */
 
 
 const GLOBAL_CANARY = "use-application-dns.net";
@@ -27,7 +28,7 @@ async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    let {addresses, _} = await dnsLookup(domain);
+    let {addresses} = await dnsLookup(domain);
     results = results.concat(addresses);
   }
   return results;
@@ -93,7 +94,7 @@ async function safeSearch() {
 
 async function zscalerCanary() {
   const ZSCALER_CANARY = "www.justmalicious.com";
-  let {addresses, _} = await dnsLookup(ZSCALER_CANARY);
+  let {addresses} = await dnsLookup(ZSCALER_CANARY);
   for (let j = 0; j < addresses.length; j++) {
     let answer = addresses[j];
     if (answer == "52.10.123.63" || answer == "52.41.181.205") {
@@ -102,7 +103,7 @@ async function zscalerCanary() {
       return "disable_doh";
     }
   }
-  return "enable_doh"
+  return "enable_doh";
 }
 
 

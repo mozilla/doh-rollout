@@ -5,7 +5,9 @@ let Cu3 = Components.utils;
 Cu3.import("resource://gre/modules/Services.jsm");
 
 function log() {
+  // eslint-disable-next-line no-constant-condition
   if (false) {
+    // eslint-disable-next-line no-console
     console.log(...arguments);
   }
 }
@@ -65,7 +67,7 @@ const heuristicsManager = {
       }
     }
 
-    // Default return, meaning no policy rekated to DNSOverHTTPS
+    // Default return, meaning no policy related to DNSOverHTTPS
     return "no_policy_set";
   },
 
@@ -99,7 +101,7 @@ const heuristicsManager = {
 
 
 var heuristics = class heuristics extends ExtensionAPI {
-  getAPI(context) {
+  getAPI() {
     return {
       experiments: {
         heuristics: {

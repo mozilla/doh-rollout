@@ -8,7 +8,7 @@ Cu2.import("resource://gre/modules/ExtensionSettingsStore.jsm");
 Cu2.import("resource://gre/modules/AddonManager.jsm");
 Cu2.import("resource://gre/modules/NetUtil.jsm");
 Cu2.import("resource://gre/modules/ExtensionPreferencesManager.jsm");
-/* global ExtensionSettingsStore, AddonManager, NetUtil, ExtensionPreferencesManager */
+/* global ExtensionPreferencesManager */
 // TODO file scope issue on experiments that join extension contexts causing redeclaration issues.
 
 const TRR_URI_PREF = "network.trr.uri";
@@ -72,7 +72,6 @@ const prefManager = {
 var preferences = class preferences extends ExtensionAPI {
   getAPI(context) {
     const EventManager = ExtensionCommon.EventManager;
-    const {extension} = context;
     return {
       experiments: {
         preferences: {
@@ -88,7 +87,7 @@ var preferences = class preferences extends ExtensionAPI {
             context,
             name: "preferences.onPrefChanged",
             register: fire => {
-              let observer = _ => {
+              let observer = () => {
                 fire.async();
               };
               Services.prefs.addObserver("doh-rollout.enabled", observer);

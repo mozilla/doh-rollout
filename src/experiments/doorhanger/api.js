@@ -1,6 +1,7 @@
 "use strict";
-/* global Services, ChromeUtils, BrowserWindowTracker, 
+/* global Services, ChromeUtils, BrowserWindowTracker,
    ExtensionCommon, ExtensionAPI */
+/* exported doorhanger */
 
 ChromeUtils.import("resource://gre/modules/Console.jsm");
 ChromeUtils.import("resource://gre/modules/Services.jsm");
@@ -54,8 +55,6 @@ class DoorhangerEventEmitter extends EventEmitter {
       },
     ];
 
-    let notification;
-
     let learnMoreURL = Services.urlFormatter.formatURL("https://support.mozilla.org/%LOCALE%/kb/firefox-dns-over-https");
 
     const options = {
@@ -70,9 +69,7 @@ class DoorhangerEventEmitter extends EventEmitter {
       removeOnDismissal: false,
     };
 
-
-
-    notification = recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
+    recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
   }
 }
 
