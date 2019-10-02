@@ -6,6 +6,14 @@ All events are sent with category `doh`.
 
 Evaluate events are sent on startup and network change, with method "evaluate" and object "heuristics".
 
+The event value can be the following:
+- `enable_doh`: Safe to enable DoH
+- `disable_doh`: DoH should not be enabled based on heuristics
+- Other:
+  - `prefHasUserValue`: User already have a value for `network.trr.mode`, so the add-on will not modify DoH settings. 
+  - `doorhangerDecline`: User clicked no on the doorhanger, opting out of the study.
+  - `userModified`: The user manually updated the `network.trr.mode`, so the study has been disabled.
+
 The event value is either `enable_doh` or `disable_doh`, reflecting the result of the evaluation.
 
 The event extras include:
