@@ -31,17 +31,18 @@ var netChange = class netChange extends ExtensionAPI {
             name: "netChange.onConnectionChanged",
             register: fire => {
               let observer = async (subject, topic, data) => {
-                if (netChangeWaiting == false) {
-                  if (data === "changed" || data === "up") {
-                    netChangeWaiting = true;
-                    await sleep(5000);
-
-                    if (gNetworkLinkService.linkStatusKnown &&
-                       gNetworkLinkService.isLinkUp) {
-                      fire.async(data);
-                    }
-                    netChangeWaiting = false;
+                if (netChangeWaiting) {
+                  return;
+                }
+                if (data === "changed" || data === "up") {
+                  // Trigger the netChangeWaiting switch, initiating 5sec timeout 
+                  netChangeWaiting = true;
+                  await sleep(5000);
+                  if (gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
+                    fire.async(data);
                   }
+                  // Reset the netChangeWaiting switch
+                  netChangeWaiting = false;
                 }
               };
 
