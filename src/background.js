@@ -79,7 +79,8 @@ const stateManager = {
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
         let results = await runHeuristics();
-        browser.experiments.heuristics.sendHeuristicsPing("userModified", results);
+        results.evaluateReason = "userModified";
+        browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
@@ -140,7 +141,8 @@ const rollout = {
     await stateManager.rememberDoorhangerDecision("UIDisabled");
     await stateManager.rememberDoorhangerPingSent();
     let results = await runHeuristics();
-    browser.experiments.heuristics.sendHeuristicsPing("doorhangerDecline", results);
+    results.evaluateReason = "doorhangerDecline";
+    browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
     await stateManager.rememberDisableHeuristics();
     await stateManager.rememberDoorhangerShown();
   },
