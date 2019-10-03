@@ -5,11 +5,13 @@ let Cu4 = Components.utils;
 Cu4.import("resource://gre/modules/Services.jsm");
 Cu4.import("resource://gre/modules/ExtensionCommon.jsm");
 
+const { setTimeout } = Cu4.import(
+  "resource://gre/modules/Timer.jsm"
+);
 
 var {EventManager} = ExtensionCommon;
 let gNetworkLinkService= Cc["@mozilla.org/network/network-link-service;1"]
   .getService(Ci.nsINetworkLinkService);
-
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
