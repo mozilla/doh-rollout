@@ -4,17 +4,15 @@ All events are sent with category `doh`.
 
 # Evaluate events
 
-Evaluate events are sent on startup and network change, with method "evaluate" and object "heuristics".
+Evaluate events are sent with method "evaluate" and object "heuristics". These events are sent during the following:
+- Browser startup
+- Network change
+- When the user clicked "disable protections" on the doorhanger notification, opting out of the study.
 
-The event value can be the following:
+The event value can be one of the following:
 - `enable_doh`: Safe to enable DoH
 - `disable_doh`: DoH should not be enabled based on heuristics
-- Other:
-  - `prefHasUserValue`: User already have a value for `network.trr.mode`, so the add-on will not modify DoH settings. 
-  - `doorhangerDecline`: User clicked no on the doorhanger, opting out of the study.
-  - `userModified`: The user manually updated the `network.trr.mode`, so the study has been disabled.
-
-The event value is either `enable_doh` or `disable_doh`, reflecting the result of the evaluation.
+- `prefHasUserValue`: The user already has a stored value for `network.trr.mode`, so the add-on will not modify DoH settings _(DoH may be enabled or disabled, but it out side of this add-on study)_. 
 
 The event extras include:
 * `google`: whether the resolver configured by the OS uses [forced SafeSearch]
