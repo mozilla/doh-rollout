@@ -35,7 +35,7 @@ var netChange = class netChange extends ExtensionAPI {
                 if (data === "changed" || data === "up") {
                   // Trigger the netChangeWaiting switch, initiating 5sec timeout 
                   netChangeWaiting = true;
-                  await sleep(5000);
+                  await sleep(60000);
                   if (gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
                     fire.async(data);
                   }
