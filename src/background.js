@@ -228,12 +228,10 @@ const rollout = {
     switch (policyEnableDoH) {
     case "enable_doh":
       log("Policy requires DoH enabled.");
-      await stateManager.setState("enabled");
       browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
       break;
     case "disable_doh":
       log("Policy requires DoH to be disabled.");
-      await stateManager.setState("disabled");
       browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
       break;
     case "no_policy_set":
@@ -243,6 +241,9 @@ const rollout = {
     if (policyEnableDoH === "enable_doh" || policyEnableDoH === "disable_doh") {
       // Don't check for prefHasUserValue if policy is set to disable DoH
       this.setSetting("skipHeuristicsCheck", true);
+    } else {
+      // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
+      this.setSetting("skipHeuristicsCheck", false);
     }
     return;
   },
@@ -260,6 +261,7 @@ const rollout = {
       await this.trrModePrefHasUserValueAndEnterprisePolicyCheck("first_run");
     } else {
       log("not first run!");
+      await this.trrModePrefHasUserValueAndEnterprisePolicyCheck("startup");
     }
 
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
