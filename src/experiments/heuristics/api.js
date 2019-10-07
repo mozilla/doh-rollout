@@ -53,8 +53,8 @@ const heuristicsManager = {
     if (Services.policies.status === Services.policies.ACTIVE) {
       let policies = Services.policies.getActivePolicies();
       if (!("DNSOverHTTPS" in policies)) {
-        // If DoH isn't in the policy, disable it
-        return "disable_doh";
+        // If DoH isn't in the policy, return that there is a policy (but no DoH specifics)
+        return "policy_without_doh";
       } else {
         let dohPolicy = policies.DNSOverHTTPS;
         if (dohPolicy.Enabled === true) {

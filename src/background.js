@@ -230,6 +230,11 @@ const rollout = {
       log("Policy requires DoH enabled.");
       browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
       break;
+    case "policy_without_doh":
+      log("Policy does not mention DoH.");
+      await stateManager.setState("disabled");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
     case "disable_doh":
       log("Policy requires DoH to be disabled.");
       browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
@@ -238,12 +243,12 @@ const rollout = {
     }
 
     // Determine to skip additional heuristics (by presence of an enterprise policy)
-    if (policyEnableDoH === "enable_doh" || policyEnableDoH === "disable_doh") {
-      // Don't check for prefHasUserValue if policy is set to disable DoH
-      this.setSetting("skipHeuristicsCheck", true);
-    } else {
+    if (policyEnableDoH === "no_policy_set") {
       // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
       this.setSetting("skipHeuristicsCheck", false);
+    } else {
+      // Don't check for prefHasUserValue if policy is set to disable DoH
+      this.setSetting("skipHeuristicsCheck", true);
     }
     return;
   },
