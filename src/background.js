@@ -241,6 +241,9 @@ const rollout = {
     if (policyEnableDoH === "enable_doh" || policyEnableDoH === "disable_doh") {
       // Don't check for prefHasUserValue if policy is set to disable DoH
       this.setSetting("skipHeuristicsCheck", true);
+    } else {
+      // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
+      this.setSetting("skipHeuristicsCheck", false);
     }
     return;
   },
