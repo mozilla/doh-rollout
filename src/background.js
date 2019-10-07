@@ -76,15 +76,16 @@ const stateManager = {
 
     if (prevMode !== curMode) {
       log("Mismatched, curMode: ", curMode);
+      // Cache results for Telemetry send, including setting eval reason
+      let results = await runHeuristics();
+      results.evaluateReason = "userModified";
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
-        let results = await runHeuristics();
-        results.evaluateReason = "userModified";
         browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
-        await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch");
+        await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch", results);
       }
       return false;
     }
