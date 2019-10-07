@@ -84,7 +84,7 @@ const stateManager = {
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
-        await rollout.trrModePrefHasUserValueAndEnterprisePolicyCheck("shouldRunHeuristics_mismatch");
+        await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch");
       }
       return false;
     }
@@ -199,9 +199,8 @@ const rollout = {
     await browser.storage.local.set({[name]: value});
   },
 
-  async trrModePrefHasUserValueAndEnterprisePolicyCheck(event) {
-    // Cache heuristics info in case a ping about a policy discovery event is sent
-    let results = await runHeuristics();
+  async trrModePrefHasUserValue(event, results) {
+
     results.evaluateReason = event;
 
     // Reset skipHeuristicsCheck
@@ -221,6 +220,13 @@ const rollout = {
       await stateManager.rememberDisableHeuristics();
       return;
     }
+  },
+
+  async enterprisePolicyCheck(event, results) {
+    results.evaluateReason = event;
+
+    // Reset skipHeuristicsCheck
+    this.setSetting("skipHeuristicsCheck", false);
 
     // Check for Policies before running the rest of the heuristics
     let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
@@ -251,6 +257,7 @@ const rollout = {
       this.setSetting("skipHeuristicsCheck", true);
     }
     return;
+
   },
 
   async init() {
@@ -260,13 +267,18 @@ const rollout = {
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
 
+    // Cache runHeuristics results for first run/start up checks
+    let results = await runHeuristics();
+
     if (!doneFirstRun) {
       log("first run!");
       this.setSetting("doneFirstRun", true);
-      await this.trrModePrefHasUserValueAndEnterprisePolicyCheck("first_run");
+      // Check if user has a set a custom pref only on first run, not on each startup
+      await this.trrModePrefHasUserValue("first_run", results);
+      await this.enterprisePolicyCheck("first_run", results);
     } else {
       log("not first run!");
-      await this.trrModePrefHasUserValueAndEnterprisePolicyCheck("startup");
+      await this.enterprisePolicyCheck("startup", results);
     }
 
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
@@ -279,7 +291,6 @@ const rollout = {
         await rollout.main();
       }
     }
-
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async () => {
