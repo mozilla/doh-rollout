@@ -1,5 +1,7 @@
 "use strict";
-/* global browser, runHeuristics */
+/* global browser */
+
+import { runHeuristics } from "./heuristics.js";
 
 function log() {
   // eslint-disable-next-line no-constant-condition
@@ -355,7 +357,7 @@ const rollout = {
   },
 };
 
-const setup = {
+export const setup = {
   enabled: false,
   async start() {
     log("Start");

@@ -10,8 +10,10 @@ module.exports = {
     "globals": {
     },
     "parserOptions": {
-        "ecmaVersion": 8
+        "ecmaVersion": 8,
+        "sourceType": "module"
     },
+    "plugins": ["jest"],
     "root": true,
     "rules": {
         "indent": ["warn", 2],

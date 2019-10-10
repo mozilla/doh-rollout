@@ -2,7 +2,6 @@
 /* global browser */
 /* exported runHeuristics */
 
-
 const GLOBAL_CANARY = "use-application-dns.net";
 
 // TODO: Confirm that this error message corresponds to NXDOMAIN
@@ -121,7 +120,7 @@ async function globalCanary() {
 
 
 async function modifiedRoots() {
-  // Check for presence of enterprise_roots cert pref. If enabled, disable DoH 
+  // Check for presence of enterprise_roots cert pref. If enabled, disable DoH
   let rootsEnabled = await browser.experiments.preferences.getUserPref(
     "security.enterprise_roots.enabled", false);
   if (rootsEnabled) {
@@ -130,7 +129,7 @@ async function modifiedRoots() {
   return "enable_doh";
 }
 
-async function runHeuristics() {
+export async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
   let zscalerCheck = await zscalerCanary();
   let canaryCheck = await globalCanary();
