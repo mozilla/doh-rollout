@@ -93,12 +93,12 @@ async function safeSearch() {
 
 
 async function zscalerCanary() {
-  const ZSCALER_CANARY = "www.justmalicious.com";
+  const ZSCALER_CANARY = "sitereview.zscaler.com";
   let {addresses} = await dnsLookup(ZSCALER_CANARY);
   for (let j = 0; j < addresses.length; j++) {
     let answer = addresses[j];
-    if (answer == "52.10.123.63" || answer == "52.41.181.205") {
-      // if www.justmalicious.com resolves to either one of the two IPs above,
+    if (answer == "213.152.228.242" || answer == "199.168.151.251" || answer == "8.25.203.30") {
+      // if sitereview.zscaler.com resolves to either one of the 3 IPs above,
       // Zscaler Shift service is in use, don't enable DoH
       return "disable_doh";
     }
