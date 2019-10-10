@@ -6,7 +6,8 @@
 	"scripts": {
 		"build": "web-ext build --overwrite-dest --source-dir src",
 		"lint": "eslint .",
-		"test": "eslint src test"
+		"test": "jest",
+		"test-all": "npm run test && npm run lint"
 	},
 	"repository": {
 		"type": "git",
