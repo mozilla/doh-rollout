@@ -21,7 +21,7 @@
   ],
 
   "background": {
-    "scripts": ["heuristics.js"],
+    "scripts": ["heuristics.js", "background.js"],
     "page": ["background.html"]
   },
 
