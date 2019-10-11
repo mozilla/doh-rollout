@@ -1,18 +1,34 @@
-import { init, getDoHStatus } from "../src/background";
+import { init } from "../src/background";
 
 function setPrefMocks(prefValuesOverrides = {}) {
   const defaultPrefValues = {
-    "doh-rollout.enabled": true,
-    TRR_MODE_PREF: 2,
+    "doh-rollout.enabled": true
   };
   const prefValues = Object.assign({}, defaultPrefValues, prefValuesOverrides);
 
-  jest.spyOn(browser.experiments.preferences, "getUserPref").mockImplementation((prefName)=>{
+  jest.spyOn(browser.experiments.preferences, "getUserPref").mockImplementation((prefName, defaultValue)=>{
     const value = prefValues[prefName];
     if (value === undefined) {
-      throw new Error(`The getUserPrefMock got a value it did not know: ${prefName}`);
+      return defaultValue;
     }
     return value;
+  });
+}
+
+function setBrowserStorageLocal() {
+  const storage = {};
+
+  jest.spyOn(browser.storage.local, "get").mockImplementation(async (name) => {
+    const value = storage[name];
+    if (value === undefined) {
+      return {};
+    }
+
+    return {[name]: value};
+  });
+
+  jest.spyOn(browser.storage.local, "set").mockImplementation((name, value) => {
+    storage[name] = value;
   });
 }
 
@@ -21,6 +37,7 @@ describe("doh setup start", ()=>{
     setPrefMocks({
       "doh-rollout.enabled": false,
     });
+    setBrowserStorageLocal();
     await init();
   });
 
@@ -28,6 +45,7 @@ describe("doh setup start", ()=>{
     setPrefMocks({
       "doh-rollout.enabled": true,
     });
+    setBrowserStorageLocal();
     await init();
   });
 });
@@ -39,33 +57,17 @@ function setEnterpriseMocks(enterprisePolicyOverrides = {}) {
   const enterprisePolicy = Object.assign({}, defaultEnterprisePolicy, enterprisePolicyOverrides);
   jest.spyOn(browser.experiments.heuristics, "checkEnterprisePolicies").mockImplementation((response)=>{
     const value = enterprisePolicy[response];
-    if (value === undefined) {
-      throw new Error(`The checkEnterprisePolicies got a response it did not know: ${response}`);
-    }
     return value;
   });
 }
-
-// function setLocalStorage(enterprisePolicyOverrides = {}) {
-//   const defaultEnterprisePolicy = {
-//     response: "no_policy_set",
-//   };
-//   const enterprisePolicy = Object.assign({}, defaultEnterprisePolicy, enterprisePolicyOverrides);
-//   jest.spyOn(browser.experiments.heuristics, "checkEnterprisePolicies").mockImplementation((response)=>{
-//     const value = enterprisePolicy[response];
-//     if (value === undefined) {
-//       throw new Error(`The checkEnterprisePolicies got a response it did not know: ${response}`);
-//     }
-//     return value;
-//   });ato
-// }
 
 describe("Rollout", ()=>{
   it("enables DoH when enterprise policy is set to enable_doh", async ()=>{
     setPrefMocks();
     setEnterpriseMocks();
+    setBrowserStorageLocal();
     const { rollout } = await init();
-    expect(await getDoHStatus(rollout) ).toBeTruthy();
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
   });
 
   it("disables DoH when enterprise policy is blank", async ()=>{
@@ -73,8 +75,9 @@ describe("Rollout", ()=>{
     setEnterpriseMocks({
       response: "disable_doh"
     });
+    setBrowserStorageLocal();
     const { rollout } = await init();
-    expect(await getDoHStatus(rollout) ).toBeFalsy();
+    expect(await rollout.getDoHStatus() ).toBeFalsy();
   });
 
 });

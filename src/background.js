@@ -11,12 +11,6 @@ function log() {
   }
 }
 
-export async function getDoHStatus(rollout) {
-  // console.log(rollout);
-  // console.log(await rollout.getSetting("doh-rollout.enabled"));
-  return await rollout.getSetting("doh-rollout.enabled");
-}
-
 const TRR_MODE_PREF = "network.trr.mode";
 
 export function init(){
@@ -138,6 +132,10 @@ export function init(){
   let notificationTime = new Date().getTime() / 1000;
 
   const rollout = {
+    async getDoHStatus() {
+      return await rollout.getSetting("doh-rollout.enabled");
+    },
+
     async doorhangerAcceptListener(tabId) {
       log("Doorhanger accepted on tab", tabId);
       await stateManager.setState("UIOk");
@@ -289,6 +287,7 @@ export function init(){
         this.setSetting("doneFirstRun", true);
         // Check if user has a set a custom pref only on first run, not on each startup
         await this.trrModePrefHasUserValue("first_run", results);
+
         await this.enterprisePolicyCheck("first_run", results);
       } else {
         log("not first run!");
@@ -370,7 +369,7 @@ export function init(){
         await rollout.setSetting("doh-rollout.enabled", true);
       }
 
-      getDoHStatus(rollout);
+      rollout.getDoHStatus();
 
     },
   };
