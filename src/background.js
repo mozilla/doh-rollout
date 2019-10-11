@@ -11,6 +11,12 @@ function log() {
   }
 }
 
+export async function getDoHStatus(rollout) {
+  // console.log(rollout);
+  // console.log(await rollout.getSetting("doh-rollout.enabled"));
+  return await rollout.getSetting("doh-rollout.enabled");
+}
+
 const TRR_MODE_PREF = "network.trr.mode";
 
 export function init(){
@@ -123,6 +129,7 @@ export function init(){
       // Be default, enable DoH when showing the doorhanger,
       // if heuristics returned no reason to not run.
       await stateManager.setState("enabled");
+      await rollout.setSetting("doh-rollout.enabled", true);
       return;
     }
 
@@ -165,8 +172,10 @@ export function init(){
       let decision = await rollout.heuristics("netChange");
       if (decision === "disable_doh") {
         await stateManager.setState("disabled");
+        await rollout.setSetting("doh-rollout.enabled", false);
       } else {
         await stateManager.setState("enabled");
+        await rollout.setSetting("doh-rollout.enabled", true);
       }
     },
 
@@ -243,6 +252,7 @@ export function init(){
       case "policy_without_doh":
         log("Policy does not mention DoH.");
         await stateManager.setState("disabled");
+        await rollout.setSetting("doh-rollout.enabled", false);
         browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
         break;
       case "disable_doh":
@@ -307,10 +317,12 @@ export function init(){
           const netChangeDecision = await rollout.heuristics("netChange");
           if (netChangeDecision === "disable_doh") {
             await stateManager.setState("disabled");
+            await rollout.setSetting("doh-rollout.enabled", false);
           } else if (shouldShowDoorhanger) {
             await stateManager.showDoorHangerAndEnableDoH();
           } else {
             await stateManager.setState("enabled");
+            await rollout.setSetting("doh-rollout.enabled", true);
           }
         }
       });
@@ -346,6 +358,7 @@ export function init(){
       let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
       if (decision === "disable_doh") {
         await stateManager.setState("disabled");
+        await rollout.setSetting("doh-rollout.enabled", false);
 
       // If the heuristics say to enable DoH, determine if the doorhanger
       // should be shown
@@ -354,7 +367,11 @@ export function init(){
       } else {
         // Doorhanger has been shown before and did not opt-out
         await stateManager.setState("enabled");
+        await rollout.setSetting("doh-rollout.enabled", true);
       }
+
+      getDoHStatus(rollout);
+
     },
   };
 
@@ -362,6 +379,7 @@ export function init(){
     enabled: false,
     async start() {
       log("Start");
+      // TODO: Rewrite if statement to remove this.enabled/disabled logic. The "First Run" code is unreachable;
       let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
       if (!runAddon && !this.enabled) {
         log("First run");
@@ -370,12 +388,17 @@ export function init(){
         this.enabled = false;
         browser.storage.local.clear();
         await stateManager.setState("disabled");
+        await rollout.setSetting("doh-rollout.enabled", false);
       } else {
+        log("start else");
         this.enabled = true;
         rollout.init();
       }
       browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
+
+      return { rollout, stateManager };
     }
   };
+
   return setup.start();
 }

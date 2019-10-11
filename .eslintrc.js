@@ -5,7 +5,8 @@ module.exports = {
         "webextensions": true
     },
     "extends": [
-        "eslint:recommended"
+        "eslint:recommended",
+        "plugin:jest/recommended"
     ],
     "globals": {
     },
