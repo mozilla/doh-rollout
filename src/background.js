@@ -133,7 +133,9 @@ export function init(){
 
   const rollout = {
     async getDoHStatus() {
-      return await rollout.getSetting("doh-rollout.enabled");
+      const dohStatus = await rollout.getSetting("doh-rollout.enabled");
+      console.log( dohStatus );
+      return dohStatus;
     },
 
     async doorhangerAcceptListener(tabId) {

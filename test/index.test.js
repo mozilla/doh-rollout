@@ -32,6 +32,23 @@ function setBrowserStorageLocal() {
   });
 }
 
+function setEnterpriseMocks(enterprisePolicyOverrides = {}) {
+  const defaultEnterprisePolicy = {
+    "policySetting": "no_policy_set"
+  };
+  const enterprisePolicy = Object.assign({}, defaultEnterprisePolicy, enterprisePolicyOverrides);
+
+  jest.spyOn(browser.experiments.preferences, "getUserPref").mockImplementation((policySetting, defaultValue)=>{
+    const value = enterprisePolicy[policySetting];
+    if (value === undefined) {
+      return defaultValue;
+    }
+    return value;
+  });
+}
+
+// Pref Gatekeeper Check
+
 describe("doh setup start", ()=>{
   it("runs without errors when DoH is disabled", async ()=>{
     setPrefMocks({
@@ -42,42 +59,40 @@ describe("doh setup start", ()=>{
   });
 
   it("runs without errors when DoH is enabled and is first run", async ()=>{
-    setPrefMocks({
-      "doh-rollout.enabled": true,
-    });
     setBrowserStorageLocal();
     await init();
   });
 });
 
-function setEnterpriseMocks(enterprisePolicyOverrides = {}) {
-  const defaultEnterprisePolicy = {
-    response: "no_policy_set",
-  };
-  const enterprisePolicy = Object.assign({}, defaultEnterprisePolicy, enterprisePolicyOverrides);
-  jest.spyOn(browser.experiments.heuristics, "checkEnterprisePolicies").mockImplementation((response)=>{
-    const value = enterprisePolicy[response];
-    return value;
-  });
-}
+// Enterprise Checks
 
 describe("Rollout", ()=>{
-  it("enables DoH when enterprise policy is set to enable_doh", async ()=>{
+  it("enables DoH when enterprise policy has no policy set", async ()=>{
     setPrefMocks();
-    setEnterpriseMocks();
     setBrowserStorageLocal();
+    setEnterpriseMocks();
     const { rollout } = await init();
     expect(await rollout.getDoHStatus() ).toBe(undefined);
   });
 
-  it("disables DoH when enterprise policy is blank", async ()=>{
+  it("enables DoH when enterprise policy is set to enable_doh", async ()=>{
     setPrefMocks();
+    setBrowserStorageLocal();
+    setEnterpriseMocks({
+      "policySetting": "enable_doh"
+    });
+    const { rollout } = await init();
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
+  });
+
+  it.skip("enables DoH when enterprise policy set to disable_doh", async ()=>{
+    setPrefMocks();
+    setBrowserStorageLocal();
     setEnterpriseMocks({
       response: "disable_doh"
     });
-    setBrowserStorageLocal();
-    const { rollout } = await init();
-    expect(await rollout.getDoHStatus() ).toBeFalsy();
-  });
 
+    const { rollout } = await init();
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
+  });
 });
