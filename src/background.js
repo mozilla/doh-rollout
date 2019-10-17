@@ -244,6 +244,8 @@ export function init(){
       // Check for Policies before running the rest of the heuristics
       let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
 
+      console.log(policyEnableDoH);
+
       switch (policyEnableDoH) {
       case "enable_doh":
         log("Policy requires DoH enabled.");

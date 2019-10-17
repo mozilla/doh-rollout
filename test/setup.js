@@ -18,7 +18,8 @@ global.browser.experiments = {
     setupTelemetry: jest.fn(),
     checkParentalControls: jest.fn(),
     checkEnterprisePolicies: jest.fn(),
-    checkThirdPartyRoots: jest.fn()
+    checkThirdPartyRoots: jest.fn(),
+    sendHeuristicsPing: jest.fn()
   },
   netChange: {
     onConnectionChanged: {

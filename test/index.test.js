@@ -32,6 +32,19 @@ function setBrowserStorageLocal() {
   });
 }
 
+function setEnterpriseMocks() {
+  const defaultEnterprisePolicy = "enable_doh";
+
+  jest.spyOn(browser.experiments.heuristics, "checkEnterprisePolicies").mockImplementation((response)=>{
+    if (!response) {
+      return defaultEnterprisePolicy;
+    }
+    return response;
+  });
+}
+
+
+
 // Pref Gatekeeper Check
 describe("doh setup start", ()=>{
 
@@ -54,4 +67,41 @@ describe("doh setup start", ()=>{
     expect(setup.enabled).toBeTruthy();
   });
 
+});
+
+
+// Enterprise Checks
+
+describe("Rollout", ()=>{
+  it("enables DoH when enterprise policy has no policy set", async ()=>{
+    setPrefMocks();
+    setBrowserStorageLocal();
+
+    const { rollout } = await init();
+    // console.log( await rollout.enterprisePolicyCheck() );
+    setEnterpriseMocks();
+    console.log( await rollout.getDoHStatus() );
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
+  });
+
+  it.skip("enables DoH when enterprise policy is set to enable_doh", async ()=>{
+    setPrefMocks();
+    setBrowserStorageLocal();
+    setEnterpriseMocks({
+      "policySetting": "enable_doh"
+    });
+    const { rollout } = await init();
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
+  });
+
+  it.skip("enables DoH when enterprise policy set to disable_doh", async ()=>{
+    setPrefMocks();
+    setBrowserStorageLocal();
+    setEnterpriseMocks({
+      response: "disable_doh"
+    });
+
+    const { rollout } = await init();
+    expect(await rollout.getDoHStatus() ).toBe(undefined);
+  });
 });
