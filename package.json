@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "web-ext build --overwrite-dest --source-dir src",
 		"lint": "eslint .",
-		"test": "jest",
+		"test": "jest --env=jsdom",
 		"test-coverage": "jest --coverage --coverageReporters=html",
 		"test-all": "npm run test && npm run lint"
 	},

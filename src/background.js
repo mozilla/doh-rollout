@@ -134,7 +134,6 @@ export function init(){
   const rollout = {
     async getDoHStatus() {
       const dohStatus = await rollout.getSetting("doh-rollout.enabled");
-      console.log( dohStatus );
       return dohStatus;
     },
 
@@ -201,10 +200,11 @@ export function init(){
 
     async getSetting(name, defaultValue) {
       let data = await browser.storage.local.get(name);
-      let value = data[name];
-      if (value === undefined) {
+
+      if (data[name] === undefined) {
         return defaultValue;
       }
+
       return data[name];
     },
 
@@ -274,8 +274,8 @@ export function init(){
 
     },
 
-    async init() {
-      log("calling init");
+    async initialize() {
+      log("calling initialize");
       let doneFirstRun = await this.getSetting("doneFirstRun");
 
       // Register the events for sending pings
@@ -382,22 +382,23 @@ export function init(){
       log("Start");
       // TODO: Rewrite if statement to remove this.enabled/disabled logic. The "First Run" code is unreachable;
       let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
-      if (!runAddon && !this.enabled) {
+      if (!runAddon && !setup.enabled) {
         log("First run");
       } else if (!runAddon) {
         log("Disabling");
-        this.enabled = false;
+        setup.enabled = false;
         browser.storage.local.clear();
         await stateManager.setState("disabled");
         await rollout.setSetting("doh-rollout.enabled", false);
       } else {
         log("start else");
-        this.enabled = true;
-        rollout.init();
+        setup.enabled = true;
+        rollout.initialize();
       }
+
       browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
 
-      return { rollout, stateManager };
+      return { setup, rollout, stateManager };
     }
   };
 
