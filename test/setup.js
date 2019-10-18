@@ -6,6 +6,13 @@ process.on("unhandledRejection", error => {
 //   throw new Error("Attempting to mock the browser but it already exists.");
 // }
 
+// global.browser.storage = {
+//   local: {
+//     get: jest.fn(),
+//     set: jest.fn(),
+//   }
+// };
+
 global.browser.experiments = {
   preferences: {
     getUserPref: jest.fn(),
@@ -29,13 +36,6 @@ global.browser.experiments = {
     onConnectionChanged: {
       addListener: jest.fn()
     }
-  }
-};
-
-global.browser.storage = {
-  local: {
-    get: jest.fn(),
-    set: jest.fn(),
   }
 };
 

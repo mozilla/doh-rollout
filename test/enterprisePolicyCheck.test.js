@@ -64,6 +64,56 @@ describe("Enterprise policy check", ()=>{
     expect(enterprisePolicyCheck).toBeTruthy();
   });
 
+  it("returns true when there is an enterprise policy with DoH enabled", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout } = await init();
+
+    let results = {
+      browserParent: "enable_doh",
+      canary: "enable_doh",
+      evaluateReason: "first_run",
+      google: "enable_doh",
+      modifiedRoots: "enable_doh",
+      policy: "no_policy_set",
+      thirdPartyRoots: "enable_doh",
+      youtube: "enable_doh",
+      zscalerCanary: "enable_doh"
+    };
+
+    let enterprisePolicyCheck = await rollout.enterprisePolicyCheck("enable_doh", "foo", results);
+    expect(enterprisePolicyCheck).toBeTruthy();
+  });
+
+  it("returns true when there is an enterprise policy with DoH disabled", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout } = await init();
+
+    let results = {
+      browserParent: "enable_doh",
+      canary: "enable_doh",
+      evaluateReason: "first_run",
+      google: "enable_doh",
+      modifiedRoots: "enable_doh",
+      policy: "no_policy_set",
+      thirdPartyRoots: "enable_doh",
+      youtube: "enable_doh",
+      zscalerCanary: "enable_doh"
+    };
+
+    let enterprisePolicyCheck = await rollout.enterprisePolicyCheck("disable_doh", "foo", results);
+    expect(enterprisePolicyCheck).toBeTruthy();
+  });
+
   it("returns false when there is a policy set with no reference to DoH", async ()=>{
     setPrefMocks({
       "doh-rollout.enabled": true,

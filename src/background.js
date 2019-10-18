@@ -384,7 +384,7 @@ export function init(){
   };
 
   const setup = {
-    enabled: false,
+    enabled: null,
     async start() {
       log("Start");
       // TODO: Rewrite if statement to remove this.enabled/disabled logic. The "First Run" code is unreachable;

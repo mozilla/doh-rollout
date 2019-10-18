@@ -31,34 +31,30 @@ function setBrowserStorageLocal() {
   });
 }
 
-// Pref Gatekeeper Check
-describe("DoH Setup", ()=>{
-
-  it("runs without errors when DoH is disabled", async ()=>{
+// shouldRunHeuristics Checks
+describe("shouldRunHeuristics", ()=>{
+  it("returns false if disableHeuristics is true ", async ()=>{
     setPrefMocks({
-      "doh-rollout.enabled": false,
+      "doh-rollout.enabled": true,
+      "network.trr.mode": 5,
     });
+
     setBrowserStorageLocal();
-    const { setup } = await init();
-    expect(setup.enabled).toBeFalsy();
+
+    const { rollout, stateManager } = await init();
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+    expect(shouldRunHeuristics).toBeFalsy();
   });
 
-  it("runs without errors when DoH is enabled", async ()=>{
+  it("returns true if disableHeuristics is false ", async ()=>{
     setPrefMocks({
       "doh-rollout.enabled": true,
     });
-    setBrowserStorageLocal();
-    const { setup } = await init();
-    expect(setup.enabled).toBeTruthy();
-  });
 
-  it.skip("runs without errors when DoH is enabled and not first run", async ()=>{
-    setPrefMocks({
-      "doh-rollout.enabled": true,
-    });
     setBrowserStorageLocal();
-    const { setup } = await init();
-    expect(setup.enabled).toBeTruthy();
-  });
 
+    const { rollout, stateManager } = await init();
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+    expect(shouldRunHeuristics).toBeTruthy();
+  });
 });
