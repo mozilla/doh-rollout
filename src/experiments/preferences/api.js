@@ -47,7 +47,18 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   },
 });
 
+// TODO: Remove prefManager, have seperate functions 
 const prefManager = {
+  getCharPref(name, defaultValue=null) {
+    return Services.prefs.getCharPref(name, defaultValue);
+  },
+  getBoolPref(name, defaultValue=null) {
+    return Services.prefs.getBoolPref(name, defaultValue);
+  },
+  getIntPref(name, defaultValue=null) {
+    return Services.prefs.getIntPref(name, defaultValue);
+  },
+
   prefHasUserValue(name) {
     return Services.prefs.prefHasUserValue(name);
   },
@@ -75,6 +86,10 @@ var preferences = class preferences extends ExtensionAPI {
     return {
       experiments: {
         preferences: {
+          async getBoolPref(name, value) {
+            return prefManager.getBoolPref(name, value);
+          },
+
           async getUserPref(name, value) {
             return prefManager.getUserPref(name, value);
           },

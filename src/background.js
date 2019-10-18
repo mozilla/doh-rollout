@@ -57,6 +57,7 @@ const stateManager = {
     }
 
     let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
+    // TODO: User GetIntPref function 
     let curMode = await browser.experiments.preferences.getUserPref(
       TRR_MODE_PREF, 0);
 
@@ -359,7 +360,7 @@ const setup = {
   enabled: false,
   async start() {
     log("Start");
-    let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
+    let runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
     if (!runAddon && !this.enabled) {
       log("First run");
     } else if (!runAddon) {
