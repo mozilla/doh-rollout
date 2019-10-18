@@ -44,6 +44,7 @@ export function init(){
     async rememberDoorhangerDecision(decision) {
       log("Remember doorhanger decision:", decision);
       await rollout.setSetting("doh-rollout.doorhanger-decision", decision);
+      return decision;
     },
 
     async rememberDisableHeuristics() {

@@ -80,5 +80,63 @@ describe("shouldRunHeuristics", ()=>{
     expect(shouldRunHeuristics).toBeFalsy();
   });
 
+  it("calls rememberDisableHeuristics if previous trr.mode doesn't match current trr.mode and current trr.mode is 0 ", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+      "network.trr.mode": 0,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout, stateManager } = await init();
+
+    await browser.storage.local.set("doh-rollout.previous.trr.mode", 2);
+
+    stateManager.rememberDisableHeuristics = jest.fn();
+
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+    expect(stateManager.rememberDisableHeuristics).toHaveBeenCalled();
+  });
+
+
+  it("calls rememberDisableHeuristics if previous trr.mode doesn't match current trr.mode and current trr.mode is 5 ", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+      "network.trr.mode": 5,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout, stateManager } = await init();
+
+    await browser.storage.local.set("doh-rollout.previous.trr.mode", 2);
+
+    stateManager.rememberDisableHeuristics = jest.fn();
+
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+    expect(stateManager.rememberDisableHeuristics).toHaveBeenCalled();
+  });
+
+  it("does not call rememberDisableHeuristics if previous trr.mode doesn't match current trr.mode and current trr.mode is 3 ", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+      "network.trr.mode": 3,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout, stateManager } = await init();
+
+    await browser.storage.local.set("doh-rollout.previous.trr.mode", 2);
+
+    stateManager.rememberDisableHeuristics = jest.fn();
+
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+    expect(stateManager.rememberDisableHeuristics).not.toHaveBeenCalled();
+  });
+
 
 });
