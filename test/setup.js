@@ -14,16 +14,6 @@ process.on("unhandledRejection", error => {
 // };
 
 global.browser.experiments = {
-  preferences: {
-    getUserPref: jest.fn(),
-    onPrefChanged: {
-      addListener: jest.fn()
-    },
-    prefHasUserValue: jest.fn(),
-    state: {
-      set: jest.fn()
-    }
-  },
   heuristics: {
     setupTelemetry: jest.fn(),
     checkParentalControls: jest.fn(),
@@ -36,6 +26,25 @@ global.browser.experiments = {
     onConnectionChanged: {
       addListener: jest.fn()
     }
+  },
+  preferences: {
+    getUserPref: jest.fn(),
+    onPrefChanged: {
+      addListener: jest.fn()
+    },
+    prefHasUserValue: jest.fn(),
+    state: {
+      set: jest.fn()
+    }
+  },
+  doorhanger: {
+    onDoorhangerAccept: {
+      addListener: jest.fn()
+    },
+    onDoorhangerDecline: {
+      addListener: jest.fn()
+    },
+    show: jest.fn(),
   }
 };
 

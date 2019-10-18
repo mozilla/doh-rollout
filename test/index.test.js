@@ -58,7 +58,7 @@ describe("DoH Setup", ()=>{
     });
     setBrowserStorageLocal();
     const { setup } = await init();
+
     expect(setup.enabled).toBeTruthy();
   });
-
 });

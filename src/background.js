@@ -91,6 +91,7 @@ export function init(){
           // Check if trr.mode is not in default value.
           await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch", results);
         }
+
         return false;
       }
 
@@ -344,10 +345,12 @@ export function init(){
       // run the measurement
       let captiveState = await browser.captivePortal.getState();
       log("Captive state:", captiveState);
-      if ((captiveState === "unlocked_portal") ||
-          (captiveState === "not_captive")) {
+      if ((captiveState === "unlocked_portal") || (captiveState === "not_captive")) {
         await rollout.onReady({state: captiveState});
+        return true;
       }
+
+      return false;
 
     },
 
@@ -358,7 +361,7 @@ export function init(){
       // Only proceed if we're not behind a captive portal
       if ((details.state !== "unlocked_portal") &&
           (details.state !== "not_captive")) {
-        return;
+        return false;
       }
 
       // Run startup heuristics to determine if DoH should be disabled
@@ -378,7 +381,7 @@ export function init(){
         rollout.enabled = true;
       }
 
-      rollout.getDoHStatus();
+      return true;
 
     },
   };

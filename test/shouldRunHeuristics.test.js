@@ -15,6 +15,10 @@ function setPrefMocks(prefValuesOverrides = {}) {
   });
 }
 
+beforeEach( async () => {
+  return browser.storage.local.clear();
+});
+
 function setBrowserStorageLocal() {
   const storage = {};
 
@@ -36,12 +40,14 @@ describe("shouldRunHeuristics", ()=>{
   it("returns false if disableHeuristics is true ", async ()=>{
     setPrefMocks({
       "doh-rollout.enabled": true,
-      "network.trr.mode": 5,
     });
 
     setBrowserStorageLocal();
 
     const { rollout, stateManager } = await init();
+
+    await browser.storage.local.set("doh-rollout.disable-heuristics", true);
+
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     expect(shouldRunHeuristics).toBeFalsy();
   });
@@ -57,4 +63,22 @@ describe("shouldRunHeuristics", ()=>{
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
     expect(shouldRunHeuristics).toBeTruthy();
   });
+
+  it("returns false if previous trr.mode doesn't match current trr.mode ", async ()=>{
+    setPrefMocks({
+      "doh-rollout.enabled": true,
+      "network.trr.mode": 2,
+    });
+
+    setBrowserStorageLocal();
+
+    const { rollout, stateManager } = await init();
+
+    await browser.storage.local.set("doh-rollout.previous.trr.mode", 0);
+
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+    expect(shouldRunHeuristics).toBeFalsy();
+  });
+
+
 });

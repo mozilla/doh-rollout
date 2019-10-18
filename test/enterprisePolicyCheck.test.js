@@ -48,20 +48,12 @@ describe("Enterprise policy check", ()=>{
 
     const { rollout } = await init();
 
-    let results = {
-      browserParent: "enable_doh",
-      canary: "enable_doh",
-      evaluateReason: "first_run",
-      google: "enable_doh",
-      modifiedRoots: "enable_doh",
-      policy: "no_policy_set",
-      thirdPartyRoots: "enable_doh",
-      youtube: "enable_doh",
-      zscalerCanary: "enable_doh"
-    };
+    let results = {};
 
     let enterprisePolicyCheck = await rollout.enterprisePolicyCheck("no_policy_set", "foo", results);
+
     expect(enterprisePolicyCheck).toBeTruthy();
+    await browser.storage.local.clear();
   });
 
   it("returns true when there is an enterprise policy with DoH enabled", async ()=>{
