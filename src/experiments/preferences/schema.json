@@ -82,6 +82,22 @@
         "async": true
       },
       {
+        "name": "getBoolPref",
+        "type": "function",
+        "description": "Get the value of a boolean preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "boolean",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
         "name": "getUserPref",
         "type": "function",
         "description": "Get the value of a preference",
