@@ -1,5 +1,5 @@
 process.on("unhandledRejection", error => {
-  throw error;
+  // throw error;
 });
 
 // if (global.browser) {
@@ -12,14 +12,18 @@ global.browser.experiments = {
     onPrefChanged: {
       addListener: jest.fn()
     },
-    prefHasUserValue: jest.fn()
+    prefHasUserValue: jest.fn(),
+    state: {
+      set: jest.fn()
+    }
   },
   heuristics: {
     setupTelemetry: jest.fn(),
     checkParentalControls: jest.fn(),
     checkEnterprisePolicies: jest.fn(),
     checkThirdPartyRoots: jest.fn(),
-    sendHeuristicsPing: jest.fn()
+    sendHeuristicsPing: jest.fn(),
+    sendStatePing: jest.fn(),
   },
   netChange: {
     onConnectionChanged: {
