@@ -47,21 +47,17 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   },
 });
 
-// TODO: Remove prefManager, have seperate functions
-const prefManager = {
-  getCharPref(name, defaultValue=null) {
-    return Services.prefs.getCharPref(name, defaultValue);
-  },
-  getBoolPref(name, defaultValue=null) {
-    return Services.prefs.getBoolPref(name, defaultValue);
-  },
-  getIntPref(name, defaultValue=null) {
-    return Services.prefs.getIntPref(name, defaultValue);
-  },
-  prefHasUserValue(name) {
-    return Services.prefs.prefHasUserValue(name);
-  },
-};
+function getBoolPref(name, defaultValue=null) {
+  return Services.prefs.getBoolPref(name, defaultValue);
+}
+
+function getIntPref(name, defaultValue=null) {
+  return Services.prefs.getIntPref(name, defaultValue);
+}
+
+function prefHasUserValue(name) {
+  return Services.prefs.prefHasUserValue(name);
+}
 
 var preferences = class preferences extends ExtensionAPI {
   getAPI(context) {
@@ -70,15 +66,15 @@ var preferences = class preferences extends ExtensionAPI {
       experiments: {
         preferences: {
           async getIntPref(name, value) {
-            return prefManager.getIntPref(name, value);
+            return getIntPref(name, value);
           },
 
           async getBoolPref(name, value) {
-            return prefManager.getBoolPref(name, value);
+            return getBoolPref(name, value);
           },
 
           async prefHasUserValue(name) {
-            return prefManager.prefHasUserValue(name);
+            return prefHasUserValue(name);
           },
 
           onPrefChanged: new EventManager({
