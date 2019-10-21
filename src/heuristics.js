@@ -122,7 +122,7 @@ async function globalCanary() {
 
 async function modifiedRoots() {
   // Check for presence of enterprise_roots cert pref. If enabled, disable DoH
-  let rootsEnabled = await browser.experiments.preferences.getUserPref(
+  let rootsEnabled = await browser.experiments.preferences.getBoolPref(
     "security.enterprise_roots.enabled", false);
   if (rootsEnabled) {
     return "disable_doh";

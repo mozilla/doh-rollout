@@ -20,7 +20,7 @@ const stateManager = {
   },
 
   async rememberTRRMode() {
-    let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
+    let curMode = await browser.experiments.preferences.getIntPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
     await rollout.setSetting("doh-rollout.previous.trr.mode", curMode);
   },
@@ -57,8 +57,7 @@ const stateManager = {
     }
 
     let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
-    // TODO: User GetIntPref function 
-    let curMode = await browser.experiments.preferences.getUserPref(
+    let curMode = await browser.experiments.preferences.getIntPref(
       TRR_MODE_PREF, 0);
 
     log("Comparing previous trr mode to current mode:",
