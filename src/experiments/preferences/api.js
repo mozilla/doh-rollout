@@ -47,7 +47,7 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   },
 });
 
-// TODO: Remove prefManager, have seperate functions 
+// TODO: Remove prefManager, have seperate functions
 const prefManager = {
   getCharPref(name, defaultValue=null) {
     return Services.prefs.getCharPref(name, defaultValue);
@@ -86,6 +86,10 @@ var preferences = class preferences extends ExtensionAPI {
     return {
       experiments: {
         preferences: {
+          async getIntPref(name, value) {
+            return prefManager.getIntPref(name, value);
+          },
+
           async getBoolPref(name, value) {
             return prefManager.getBoolPref(name, value);
           },
