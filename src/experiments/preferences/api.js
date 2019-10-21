@@ -58,26 +58,9 @@ const prefManager = {
   getIntPref(name, defaultValue=null) {
     return Services.prefs.getIntPref(name, defaultValue);
   },
-
   prefHasUserValue(name) {
     return Services.prefs.prefHasUserValue(name);
   },
-  getUserPref(name, value) {
-    if (!Services.prefs.prefHasUserValue(name)) {
-      return value;
-    }
-    let type = Services.prefs.getPrefType(name);
-    switch (type) {
-    case Services.prefs.PREF_STRING:
-      return Services.prefs.getCharPref(name, value);
-    case Services.prefs.PREF_INT:
-      return Services.prefs.getIntPref(name, value);
-    case Services.prefs.PREF_BOOL:
-      return Services.prefs.getBoolPref(name, value);
-    default:
-      throw new Error("Unknown type");
-    }
-  }
 };
 
 var preferences = class preferences extends ExtensionAPI {
@@ -92,10 +75,6 @@ var preferences = class preferences extends ExtensionAPI {
 
           async getBoolPref(name, value) {
             return prefManager.getBoolPref(name, value);
-          },
-
-          async getUserPref(name, value) {
-            return prefManager.getUserPref(name, value);
           },
 
           async prefHasUserValue(name) {

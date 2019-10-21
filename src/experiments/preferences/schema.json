@@ -114,22 +114,6 @@
         "async": true
       },
       {
-        "name": "getUserPref",
-        "type": "function",
-        "description": "Get the value of a preference",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "name"
-          },
-          {
-            "type": "any",
-            "name": "value"
-          }
-        ],
-        "async": true
-      },
-      {
         "name": "prefHasUserValue",
         "type": "function",
         "description": "Check if the user has set a value of a preference",
