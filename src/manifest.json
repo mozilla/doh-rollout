@@ -3,7 +3,7 @@
   "name": "__MSG_extensionName__",
   "default_locale": "en_US",
   "description": "__MSG_extensionDescription__",
-  "version": "1.0.2",
+  "version": "1.0.2-rc1",
 
   "hidden": true,
 
