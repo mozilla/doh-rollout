@@ -359,7 +359,7 @@ const setup = {
   async start() {
     const doneFirstRun = await rollout.getSetting("doneFirstRun");
 
-    log("Start: ",  doneFirstRun);
+    log("setup.start: ",  doneFirstRun);
 
     let runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
     if (!runAddon && !doneFirstRun) {
