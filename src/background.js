@@ -261,9 +261,8 @@ const rollout = {
 
   },
 
-  async init() {
-    log("calling init");
-    let doneFirstRun = await this.getSetting("doneFirstRun");
+  async init(doneFirstRun) {
+    log("calling init: ", doneFirstRun);
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
@@ -358,18 +357,21 @@ const rollout = {
 const setup = {
   enabled: false,
   async start() {
-    log("Start");
+    const doneFirstRun = await rollout.getSetting("doneFirstRun");
+
+    log("Start: ",  doneFirstRun);
+
     let runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
-    if (!runAddon && !this.enabled) {
+    if (!runAddon && !doneFirstRun) {
       log("First run");
     } else if (!runAddon) {
       log("Disabling");
-      this.enabled = false;
+      // this.enabled = false;
       browser.storage.local.clear();
       await stateManager.setState("disabled");
     } else {
-      this.enabled = true;
-      rollout.init();
+      // this.enabled = true;
+      rollout.init(doneFirstRun);
     }
 
     browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
