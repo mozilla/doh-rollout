@@ -261,8 +261,11 @@ const rollout = {
 
   },
 
-  async init(doneFirstRun) {
-    log("calling init: ", doneFirstRun);
+  async init() {
+    log("calling init");
+
+    // Check if the add-on has run before
+    let doneFirstRun = await this.getSetting("doneFirstRun");
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
@@ -355,25 +358,26 @@ const rollout = {
 };
 
 const setup = {
-  enabled: false,
   async start() {
-    const doneFirstRun = await rollout.getSetting("doneFirstRun");
+    const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
+    const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
 
-    log("setup.start: ",  doneFirstRun);
-
-    let runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
-    if (!runAddon && !doneFirstRun) {
-      log("First run");
-    } else if (!runAddon) {
-      log("Disabling");
-      // this.enabled = false;
+    if (isAddonDisabled) {
+      // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
+      log("Disabling"); 
       browser.storage.local.clear();
       await stateManager.setState("disabled");
-    } else {
-      // this.enabled = true;
-      rollout.init(doneFirstRun);
+      return;
     }
 
+    if (runAddon) {
+      // Confirms that the Normand/default branch gate keeping pref is set to true
+      rollout.init();
+    } else {
+      log("First run");
+    }
+
+    // Set listener for Normandy pref update past inital startup
     browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
   }
 };
