@@ -47,34 +47,20 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   },
 });
 
-function getBoolPref(name, defaultValue=null) {
-  return Services.prefs.getBoolPref(name, defaultValue);
-}
-
-function getIntPref(name, defaultValue=null) {
-  return Services.prefs.getIntPref(name, defaultValue);
-}
-
-function prefHasUserValue(name) {
-  return Services.prefs.prefHasUserValue(name);
-}
-
 var preferences = class preferences extends ExtensionAPI {
   getAPI(context) {
     const EventManager = ExtensionCommon.EventManager;
     return {
       experiments: {
         preferences: {
-          async getIntPref(name, value) {
-            return getIntPref(name, value);
+          async getIntPref(name, defaultValue) {
+            return Services.prefs.getIntPref(name, defaultValue);
           },
-
-          async getBoolPref(name, value) {
-            return getBoolPref(name, value);
+          async getBoolPref(name, defaultValue) {
+            return Services.prefs.getBoolPref(name, defaultValue);
           },
-
           async prefHasUserValue(name) {
-            return prefHasUserValue(name);
+            return Services.prefs.prefHasUserValue(name);
           },
 
           onPrefChanged: new EventManager({
