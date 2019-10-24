@@ -47,40 +47,20 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   },
 });
 
-const prefManager = {
-  prefHasUserValue(name) {
-    return Services.prefs.prefHasUserValue(name);
-  },
-  getUserPref(name, value) {
-    if (!Services.prefs.prefHasUserValue(name)) {
-      return value;
-    }
-    let type = Services.prefs.getPrefType(name);
-    switch (type) {
-    case Services.prefs.PREF_STRING:
-      return Services.prefs.getCharPref(name, value);
-    case Services.prefs.PREF_INT:
-      return Services.prefs.getIntPref(name, value);
-    case Services.prefs.PREF_BOOL:
-      return Services.prefs.getBoolPref(name, value);
-    default:
-      throw new Error("Unknown type");
-    }
-  }
-};
-
 var preferences = class preferences extends ExtensionAPI {
   getAPI(context) {
     const EventManager = ExtensionCommon.EventManager;
     return {
       experiments: {
         preferences: {
-          async getUserPref(name, value) {
-            return prefManager.getUserPref(name, value);
+          async getIntPref(name, defaultValue) {
+            return Services.prefs.getIntPref(name, defaultValue);
           },
-
+          async getBoolPref(name, defaultValue) {
+            return Services.prefs.getBoolPref(name, defaultValue);
+          },
           async prefHasUserValue(name) {
-            return prefManager.prefHasUserValue(name);
+            return Services.prefs.prefHasUserValue(name);
           },
 
           onPrefChanged: new EventManager({

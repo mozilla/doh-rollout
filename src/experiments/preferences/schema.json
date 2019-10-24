@@ -82,17 +82,33 @@
         "async": true
       },
       {
-        "name": "getUserPref",
+        "name": "getIntPref",
         "type": "function",
-        "description": "Get the value of a preference",
+        "description": "Get the value of a integer preference",
         "parameters": [
           {
             "type": "string",
             "name": "name"
           },
           {
-            "type": "any",
-            "name": "value"
+            "type": "integer",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "getBoolPref",
+        "type": "function",
+        "description": "Get the value of a boolean preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "boolean",
+            "name": "defaultValue"
           }
         ],
         "async": true

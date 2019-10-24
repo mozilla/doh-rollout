@@ -20,7 +20,7 @@ const stateManager = {
   },
 
   async rememberTRRMode() {
-    let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
+    let curMode = await browser.experiments.preferences.getIntPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
     await rollout.setSetting("doh-rollout.previous.trr.mode", curMode);
   },
@@ -57,7 +57,7 @@ const stateManager = {
     }
 
     let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
-    let curMode = await browser.experiments.preferences.getUserPref(
+    let curMode = await browser.experiments.preferences.getIntPref(
       TRR_MODE_PREF, 0);
 
     log("Comparing previous trr mode to current mode:",
@@ -263,6 +263,8 @@ const rollout = {
 
   async init() {
     log("calling init");
+
+    // Check if the add-on has run before
     let doneFirstRun = await this.getSetting("doneFirstRun");
 
     // Register the events for sending pings
@@ -356,22 +358,26 @@ const rollout = {
 };
 
 const setup = {
-  enabled: false,
   async start() {
-    log("Start");
-    let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
-    if (!runAddon && !this.enabled) {
-      log("First run");
-    } else if (!runAddon) {
-      log("Disabling");
-      this.enabled = false;
+    const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
+    const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
+
+    if (isAddonDisabled) {
+      // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
+      log("Disabling"); 
       browser.storage.local.clear();
       await stateManager.setState("disabled");
-    } else {
-      this.enabled = true;
-      rollout.init();
+      return;
     }
 
+    if (runAddon) {
+      // Confirms that the Normand/default branch gate keeping pref is set to true
+      rollout.init();
+    } else {
+      log("First run");
+    }
+
+    // Set listener for Normandy pref update past inital startup
     browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
   }
 };
