@@ -367,6 +367,7 @@ const setup = {
       log("Disabling"); 
       browser.storage.local.clear();
       await stateManager.setState("disabled");
+      await stateManager.rememberDisableHeuristics();
       return;
     }
 
