@@ -364,9 +364,9 @@ const setup = {
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
-      log("Disabling"); 
+      // DoH status will not be modified from whatever the current setting is at runtime
+      log("Addon has been disabled. DoH status will not be modified from current setting");
       browser.storage.local.clear();
-      await stateManager.setState("disabled");
       await stateManager.rememberDisableHeuristics();
       return;
     }
