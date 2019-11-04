@@ -19,30 +19,12 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
   prefNames: [
     TRR_URI_PREF,
     TRR_DISABLE_ECS_PREF,
-    TRR_MODE_PREF,
   ],
 
   setCallback(value) {
     let prefs = {};
     prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
     prefs[TRR_DISABLE_ECS_PREF] = true;
-    prefs[TRR_MODE_PREF] = 0;
-
-    switch (value) {
-    case "uninstalled":
-      break;
-    case "disabled":
-      break;
-    case "manuallyDisabled":
-      break;
-    case "UIOk":
-    case "enabled":
-      prefs[TRR_MODE_PREF] = 2;
-      break;
-    case "UIDisabled":
-      prefs[TRR_MODE_PREF] = 5;
-      break;
-    }
     return prefs;
   },
 });
@@ -56,12 +38,16 @@ var preferences = class preferences extends ExtensionAPI {
           async getIntPref(name, defaultValue) {
             return Services.prefs.getIntPref(name, defaultValue);
           },
+          async setIntPref(name, defaultValue) {
+            return Services.prefs.setIntPref(name, defaultValue);
+          },
           async getBoolPref(name, defaultValue) {
             return Services.prefs.getBoolPref(name, defaultValue);
           },
           async prefHasUserValue(name) {
             return Services.prefs.prefHasUserValue(name);
           },
+
 
           onPrefChanged: new EventManager({
             context,

@@ -98,6 +98,22 @@
         "async": true
       },
       {
+        "name": "setIntPref",
+        "type": "function",
+        "description": "Sets the value of a integer preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "integer",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
         "name": "getBoolPref",
         "type": "function",
         "description": "Get the value of a boolean preference",

@@ -15,6 +15,23 @@ const stateManager = {
   async setState(state) {
     log("setState: ", state);
     browser.experiments.preferences.state.set({ value: state });
+
+    switch (state) {
+    case "uninstalled":
+      break;
+    case "disabled":
+      break;
+    case "manuallyDisabled":
+      break;
+    case "UIOk":
+    case "enabled":
+      browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 2);
+      break;
+    case "UIDisabled":
+      browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 5);
+      break;
+    }
+
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
   },
