@@ -3,7 +3,7 @@
 
 async function log() {
   // eslint-disable-next-line no-constant-condition
-  const showConsoleLogs = await browser.experiments.preferences.getBoolPref("doh-rollout.logging", false);
+  const showConsoleLogs = await browser.experiments.preferences.getBoolPref("doh-rollout.debug", false);
   if ( showConsoleLogs ) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
