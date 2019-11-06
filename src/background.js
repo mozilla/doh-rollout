@@ -10,6 +10,10 @@ function log() {
 }
 
 const TRR_MODE_PREF = "network.trr.mode";
+
+// This preference is set to TRUE when DoH has been enabled via the add-on. It will
+// allow the add-on to continue to function without the aid of the Normandy-triggered pref
+// of "doh-rollout.enabled". Note that instead of setting it to false, it is cleared.
 const DOH_SELF_ENABLED_PREF = "doh-rollout.self-enabled";
 
 const stateManager = {
@@ -22,10 +26,10 @@ const stateManager = {
       break;
     case "disabled":
       browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 0);
-      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       break;
     case "manuallyDisabled":
-      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       break;
     case "UIOk":
       browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, true);
@@ -36,7 +40,7 @@ const stateManager = {
       break;
     case "UIDisabled":
       browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 5);
-      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       break;
     }
 
