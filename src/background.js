@@ -442,6 +442,7 @@ const setup = {
     if (isAddonDisabled || remoteDisableAddon) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       log("Addon has been disabled. DoH status will not be modified from current setting");
       browser.storage.local.clear();
       await stateManager.rememberDisableHeuristics();
