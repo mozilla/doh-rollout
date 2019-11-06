@@ -49,6 +49,9 @@ var preferences = class preferences extends ExtensionAPI {
           async setCharPref(name, defaultValue) {
             return Services.prefs.setCharPref(name, defaultValue);
           },
+          async clearUserPref(name) {
+            return Services.prefs.clearUserPref(name);
+          },
           async prefHasUserValue(name) {
             return Services.prefs.prefHasUserValue(name);
           },

@@ -397,7 +397,28 @@ const rollout = {
 const setup = {
   async start() {
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
-    const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
+    const runAddonPref = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
+    const runAddonLocalStorage = await rollout.getSetting("doh-rollout.doorhanger-decision", false);
+    const remoteDisableAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.remote-disable", false);
+
+    if (remoteDisableAddon) {
+      // Fail safe to remotely disable add-on.
+      const addonPrefs = [
+        "doh-rollout.doorhanger-decision",
+        "doh-rollout.doorhanger-shown",
+        "doh-rollout.previous.trr.mode",
+        "doh-rollout.enabled"
+      ];
+
+      for (const pref of addonPrefs) {
+        browser.experiments.preferences.clearUserPref(pref);
+      }
+
+      browser.storage.local.clear();
+      await stateManager.rememberDisableHeuristics();
+
+      return;
+    }
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
@@ -408,7 +429,7 @@ const setup = {
       return;
     }
 
-    if (runAddon) {
+    if (runAddonPref || runAddonLocalStorage === "UIOk" || runAddonLocalStorage === "enabled") {
       // Confirms that the Normand/default branch gate keeping pref is set to true
       rollout.init();
     } else {
