@@ -414,27 +414,7 @@ const setup = {
     const runAddonLocalStorage = await rollout.getSetting("doh-rollout.doorhanger-decision", false);
     const remoteDisableAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.remote-disable", false);
 
-    if (remoteDisableAddon) {
-      // Fail safe to remotely disable add-on.
-      const addonPrefs = [
-        "doh-rollout.doorhanger-decision",
-        "doh-rollout.doorhanger-shown",
-        "doh-rollout.previous.trr.mode",
-        "doh-rollout.enabled",
-        DOH_SELF_ENABLED_PREF
-      ];
-
-      for (const pref of addonPrefs) {
-        browser.experiments.preferences.clearUserPref(pref);
-      }
-
-      browser.storage.local.clear();
-      await stateManager.rememberDisableHeuristics();
-
-      return;
-    }
-
-    if (isAddonDisabled) {
+    if (isAddonDisabled || remoteDisableAddon) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
       log("Addon has been disabled. DoH status will not be modified from current setting");
