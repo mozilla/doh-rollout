@@ -13,7 +13,6 @@ Cu2.import("resource://gre/modules/ExtensionPreferencesManager.jsm");
 
 const TRR_URI_PREF = "network.trr.uri";
 const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
-const TRR_MODE_PREF = "network.trr.mode";
 
 ExtensionPreferencesManager.addSetting("dohRollout.state", {
   prefNames: [
@@ -21,7 +20,7 @@ ExtensionPreferencesManager.addSetting("dohRollout.state", {
     TRR_DISABLE_ECS_PREF,
   ],
 
-  setCallback(value) {
+  setCallback() {
     let prefs = {};
     prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
     prefs[TRR_DISABLE_ECS_PREF] = true;
