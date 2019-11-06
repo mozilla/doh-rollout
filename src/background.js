@@ -416,7 +416,8 @@ const setup = {
         "doh-rollout.doorhanger-decision",
         "doh-rollout.doorhanger-shown",
         "doh-rollout.previous.trr.mode",
-        "doh-rollout.enabled"
+        "doh-rollout.enabled",
+        DOH_SELF_ENABLED_PREF
       ];
 
       for (const pref of addonPrefs) {
