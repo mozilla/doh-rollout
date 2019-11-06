@@ -16,6 +16,10 @@ const TRR_MODE_PREF = "network.trr.mode";
 // of "doh-rollout.enabled". Note that instead of setting it to false, it is cleared.
 const DOH_SELF_ENABLED_PREF = "doh-rollout.self-enabled";
 
+// This pref is set once a migration function has ran, updating local storage items to the
+// new doh-rollot.X namespace. This applies to both `doneFirstRun` and `skipHeuristicsCheck`. 
+const DOH_BALROG_MIGRATION_PREF = "doh-rollout.balrog-migration";
+
 const stateManager = {
   async setState(state) {
     log("setState: ", state);
@@ -310,8 +314,29 @@ const rollout = {
 
   },
 
+  async migrateLocalStoragePrefs() {
+    if (await this.getSetting("doneFirstRun")){
+      await this.setSetting("doh-rollout.doneFirstRun");
+    }
+
+    if (await this.getSetting("skipHeuristicsCheck")){
+      await this.setSetting("doh-rollout.skipHeuristicsCheck");
+    }
+
+    // Set pref to skip this function in the future.
+    browser.experiments.preferences.setBoolPref(DOH_BALROG_MIGRATION_PREF, true);
+
+  },
+
   async init() {
     log("calling init");
+
+    // Migrate updated local storage item names. If this has already been done once, it will be skipped.
+    const isMigrated = await browser.experiments.preferences.getBoolPref(DOH_BALROG_MIGRATION_PREF, false);
+
+    if (!isMigrated) {
+      await this.migrateLocalStoragePrefs();
+    }
 
     // Check if the add-on has run before
     let doneFirstRun = await this.getSetting("doh-rollout.doneFirstRun");
