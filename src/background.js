@@ -39,14 +39,14 @@ const stateManager = {
   async rememberTRRMode() {
     let curMode = await browser.experiments.preferences.getIntPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
-    await rollout.setSetting("doh-rollout.previous.trr.mode", curMode);
+    await rollout.setSetting("doh-rollout.previous.trr.mode", curMode, true);
   },
 
   async rememberDoorhangerShown() {
     // This will be shown on startup and netChange events until a user clicks
     // to confirm/disable DoH or presses the esc key (confirming)
     log("Remembering that doorhanger has been shown");
-    await rollout.setSetting("doh-rollout.doorhanger-shown", true);
+    await rollout.setSetting("doh-rollout.doorhanger-shown", true, true);
   },
 
   async rememberDoorhangerPingSent() {
@@ -56,12 +56,13 @@ const stateManager = {
 
   async rememberDoorhangerDecision(decision) {
     log("Remember doorhanger decision:", decision);
-    await rollout.setSetting("doh-rollout.doorhanger-decision", decision);
+    await rollout.setSetting("doh-rollout.doorhanger-decision", decision, true);
+
   },
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
-    await rollout.setSetting("doh-rollout.disable-heuristics", true);
+    await rollout.setSetting("doh-rollout.disable-heuristics", true, true);
   },
 
   async shouldRunHeuristics() {
@@ -213,8 +214,27 @@ const rollout = {
     return data[name];
   },
 
-  async setSetting(name, value) {
+  async setSetting(name, value, makeDurable) {
     await browser.storage.local.set({[name]: value});
+
+    // makeDurable is bool arg that sets same local storage item as durable pref
+    // (controlled outside of Extension Preference Manager)
+    if (!makeDurable) {
+      return;
+    }
+
+    // Based on type of pref, set pref accordingly
+    switch (typeof value) {
+    case "boolean":
+      browser.experiments.preferences.setBoolPref(name, value);
+      break;
+    case "number":
+      browser.experiments.preferences.setIntPref(name, value);
+      break;
+    case "string":
+      browser.experiments.preferences.setCharPref(name, value);
+      break;
+    }
   },
 
   async trrModePrefHasUserValue(event, results) {
@@ -222,7 +242,7 @@ const rollout = {
     results.evaluateReason = event;
 
     // Reset skipHeuristicsCheck
-    this.setSetting("skipHeuristicsCheck", false);
+    this.setSetting("doh-rollout.skipHeuristicsCheck", false);
 
     // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
     // This runs only on the FIRST time that add-on is enabled and if the stored pref
@@ -244,7 +264,7 @@ const rollout = {
     results.evaluateReason = event;
 
     // Reset skipHeuristicsCheck
-    this.setSetting("skipHeuristicsCheck", false);
+    this.setSetting("doh-rollout.skipHeuristicsCheck", false);
 
     // Check for Policies before running the rest of the heuristics
     let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
@@ -269,10 +289,10 @@ const rollout = {
     // Determine to skip additional heuristics (by presence of an enterprise policy)
     if (policyEnableDoH === "no_policy_set") {
       // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
-      this.setSetting("skipHeuristicsCheck", false);
+      this.setSetting("doh-rollout.skipHeuristicsCheck", false);
     } else {
       // Don't check for prefHasUserValue if policy is set to disable DoH
-      this.setSetting("skipHeuristicsCheck", true);
+      this.setSetting("doh-rollout.skipHeuristicsCheck", true);
     }
     return;
 
@@ -282,7 +302,7 @@ const rollout = {
     log("calling init");
 
     // Check if the add-on has run before
-    let doneFirstRun = await this.getSetting("doneFirstRun");
+    let doneFirstRun = await this.getSetting("doh-rollout.doneFirstRun");
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
@@ -292,7 +312,7 @@ const rollout = {
 
     if (!doneFirstRun) {
       log("first run!");
-      this.setSetting("doneFirstRun", true);
+      this.setSetting("doh-rollout.doneFirstRun", true);
       // Check if user has a set a custom pref only on first run, not on each startup
       await this.trrModePrefHasUserValue("first_run", results);
       await this.enterprisePolicyCheck("first_run", results);
@@ -302,7 +322,7 @@ const rollout = {
     }
 
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-    let skipHeuristicsCheck = await this.getSetting("skipHeuristicsCheck");
+    let skipHeuristicsCheck = await this.getSetting("doh-rollout.skipHeuristicsCheck");
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
     if (!skipHeuristicsCheck) {

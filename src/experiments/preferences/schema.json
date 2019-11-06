@@ -130,6 +130,38 @@
         "async": true
       },
       {
+        "name": "setBoolPref",
+        "type": "function",
+        "description": "Sets the value of a boolean preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "boolean",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "setCharPref",
+        "type": "function",
+        "description": "Sets the value of a string preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name"
+          },
+          {
+            "type": "string",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
         "name": "prefHasUserValue",
         "type": "function",
         "description": "Check if the user has set a value of a preference",
