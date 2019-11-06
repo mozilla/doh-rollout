@@ -10,6 +10,7 @@ function log() {
 }
 
 const TRR_MODE_PREF = "network.trr.mode";
+const DOH_SELF_ENABLED_PREF = "doh-rollout.self-enabled";
 
 const stateManager = {
   async setState(state) {
@@ -20,15 +21,22 @@ const stateManager = {
     case "uninstalled":
       break;
     case "disabled":
+      browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 0);
+      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
       break;
     case "manuallyDisabled":
+      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
       break;
     case "UIOk":
+      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, true);
+      break;
     case "enabled":
       browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 2);
+      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, true);
       break;
     case "UIDisabled":
       browser.experiments.preferences.setIntPref(TRR_MODE_PREF, 5);
+      browser.experiments.preferences.setBoolPref(DOH_SELF_ENABLED_PREF, false);
       break;
     }
 
@@ -398,6 +406,7 @@ const setup = {
   async start() {
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     const runAddonPref = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
+    const runAddonBypassPref = await browser.experiments.preferences.getBoolPref("doh-rollout.self-enabled", false);
     const runAddonLocalStorage = await rollout.getSetting("doh-rollout.doorhanger-decision", false);
     const remoteDisableAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.remote-disable", false);
 
@@ -429,7 +438,7 @@ const setup = {
       return;
     }
 
-    if (runAddonPref || runAddonLocalStorage === "UIOk" || runAddonLocalStorage === "enabled") {
+    if (runAddonPref || runAddonBypassPref || runAddonLocalStorage === "UIOk" || runAddonLocalStorage === "enabled") {
       // Confirms that the Normand/default branch gate keeping pref is set to true
       rollout.init();
     } else {
