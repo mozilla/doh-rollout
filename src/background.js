@@ -359,6 +359,10 @@ const rollout = {
 
 const setup = {
   async start() {
+    const study = await browser.normandyAddonStudy.getStudy();
+
+    console.log(study);
+
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
 
@@ -371,7 +375,7 @@ const setup = {
       return;
     }
 
-    if (runAddon) {
+    if (runAddon || study) {
       // Confirms that the Normand/default branch gate keeping pref is set to true
       rollout.init();
     } else {
