@@ -3,7 +3,7 @@
 
 function log() {
   // eslint-disable-next-line no-constant-condition
-  if (false) {
+  if (true) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
   }
@@ -361,7 +361,7 @@ const setup = {
   async start() {
     const study = await browser.normandyAddonStudy.getStudy();
 
-    console.log(study);
+    log(study);
 
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
