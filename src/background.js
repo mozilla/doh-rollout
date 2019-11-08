@@ -3,7 +3,7 @@
 
 function log() {
   // eslint-disable-next-line no-constant-condition
-  if (true) {
+  if (false) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
   }
@@ -357,10 +357,11 @@ const rollout = {
   },
 };
 
-function studyCheck(study) {
+async function CheckNormandyAddonStudy() {
+  const study = await browser.normandyAddonStudy.getStudy();
 
   if (study === undefined) {
-    // throw new Error("No study associated with this extension!");
+    log("No Normandy study detected!");
     return false;
   }
 
@@ -377,7 +378,7 @@ function studyCheck(study) {
 
 const setup = {
   async start() {
-    const study = await browser.normandyAddonStudy.getStudy();
+    const isNormandyStudy = await CheckNormandyAddonStudy();
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
 
@@ -390,7 +391,7 @@ const setup = {
       return;
     }
 
-    if (runAddon || studyCheck(study)) {
+    if (runAddon || isNormandyStudy) {
       // Confirms that the Normandy/default branch gate keeping pref is set to true or
       // if the normandyAddonStudy branch is set to "enable"!
       rollout.init();
