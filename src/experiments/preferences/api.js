@@ -46,6 +46,9 @@ var preferences = class preferences extends ExtensionAPI {
           async setBoolPref(name, defaultValue) {
             return Services.prefs.setBoolPref(name, defaultValue);
           },
+          async getCharPref(name, defaultValue) {
+            return Services.prefs.getCharPref(name, defaultValue);
+          },
           async setCharPref(name, defaultValue) {
             return Services.prefs.setCharPref(name, defaultValue);
           },

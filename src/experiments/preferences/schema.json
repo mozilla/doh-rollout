@@ -150,6 +150,24 @@
         "async": true
       },
       {
+        "name": "getCharPref",
+        "type": "function",
+        "description": "Gets the value of a string preference",
+        "parameters": [
+          {
+            "type": "string",
+            "name": {
+              "enum": ["doh-rollout.doorhanger-decision"]
+            }
+          },
+          {
+            "type": "string",
+            "name": "defaultValue"
+          }
+        ],
+        "async": true
+      },
+      {
         "name": "setCharPref",
         "type": "function",
         "description": "Sets the value of a string preference",
