@@ -357,7 +357,7 @@ const rollout = {
   },
 };
 
-async function CheckNormandyAddonStudy() {
+async function checkNormandyAddonStudy() {
   const study = await browser.normandyAddonStudy.getStudy();
 
   if (study === undefined) {
@@ -378,7 +378,7 @@ async function CheckNormandyAddonStudy() {
 
 const setup = {
   async start() {
-    const isNormandyStudy = await CheckNormandyAddonStudy();
+    const isNormandyStudy = await checkNormandyAddonStudy();
     const isAddonDisabled = await rollout.getSetting("doh-rollout.disable-heuristics", false);
     const runAddon = await browser.experiments.preferences.getBoolPref("doh-rollout.enabled", false);
 
