@@ -371,7 +371,7 @@ function studyCheck(study) {
   case "doh-rollout-disabled":
     return false;
   default:
-    throw new Error("Unexpected Study branch: ", branch);
+    throw new Error(`Unexpected study branch: ${JSON.stringify(branch)}`);
   }
 }
 
