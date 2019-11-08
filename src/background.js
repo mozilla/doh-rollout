@@ -266,12 +266,29 @@ const rollout = {
   },
 
   async migrateLocalStoragePrefs() {
-    if (await this.getSetting("doneFirstRun")){
-      await this.setSetting("doh-rollout.doneFirstRun");
+
+    // Migrate updated local storage item names. If this has already been done once, skip the migration
+    const isMigrated = await browser.experiments.preferences.getBoolPref(DOH_BALROG_MIGRATION_PREF, false);
+
+    if (isMigrated) {
+      return;
     }
 
-    if (await this.getSetting("skipHeuristicsCheck")){
-      await this.setSetting("doh-rollout.skipHeuristicsCheck");
+    const localStorageItems = ["doneFirstRun", "skipHeuristicsCheck"];
+
+    for (let item of localStorageItems) {
+      let data = await browser.storage.local.get(item);
+      let value = data[item];
+
+      let migratedName = name;
+
+      if (!name.startsWith("doh-rollout.")){
+        migratedName = "doh-rollout." + name;
+      }
+
+      if (value !== undefined) {
+        await this.setSetting(migratedName, value);
+      }
     }
 
     // Set pref to skip this function in the future.
@@ -281,12 +298,7 @@ const rollout = {
   async init() {
     log("calling init");
 
-    // Migrate updated local storage item names. If this has already been done once, it will be skipped.
-    const isMigrated = await browser.experiments.preferences.getBoolPref(DOH_BALROG_MIGRATION_PREF, false);
-
-    if (!isMigrated) {
-      await this.migrateLocalStoragePrefs();
-    }
+    await rollout.migrateLocalStoragePrefs();
 
     // Check if the add-on has run before
     let doneFirstRun = await this.getSetting("doh-rollout.doneFirstRun");
