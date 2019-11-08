@@ -39,9 +39,6 @@ const DOH_DOORHANGER_USER_DECISION_PREF = "doh-rollout.doorhanger-decision";
 // unchecking "DNS-over-HTTPS" with about:preferences, or manually setting network.trr.mode
 const DOH_DISABLED_PREF = "doh-rollout.disable-heuristics";
 
-// Pref that will clean up after the add-on in case of emergency.
-const DOH_REMOTE_DISABLE_PREF = "doh-rollout.remote-disable";
-
 const stateManager = {
   async setState(state) {
     log("setState: ", state);
@@ -442,11 +439,10 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
-    const remoteDisableAddon = await rollout.getSetting(DOH_REMOTE_DISABLE_PREF, false);
 
     log(runAddonPref);
 
-    if (isAddonDisabled || remoteDisableAddon) {
+    if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
       browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
