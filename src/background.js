@@ -26,7 +26,7 @@ const TRR_MODE_PREF = "network.trr.mode";
 // of "doh-rollout.enabled". Note that instead of setting it to false, it is cleared.
 const DOH_SELF_ENABLED_PREF = "doh-rollout.self-enabled";
 
-// This pref is part of a cache mechnaism to see if the heuristics dictated a change in the DoH settings
+// This pref is part of a cache mechanism to see if the heuristics dictated a change in the DoH settings
 const DOH_PREVIOUS_TRR_MODE_PREF = "doh-rollout.previous.trr.mode";
 
 // Set after doorhanger has been interacted with by the user
@@ -49,7 +49,6 @@ const stateManager = {
       break;
     case "disabled":
       rollout.setSetting(TRR_MODE_PREF, 0);
-      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       break;
     case "manuallyDisabled":
       browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
