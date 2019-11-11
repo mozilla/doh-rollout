@@ -104,9 +104,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": {
-              "enum": ["network.trr.mode", "doh-rollout.previous.trr.mode"]
-            }
+            "enum": ["network.trr.mode", "doh-rollout.previous.trr.mode"]
           },
           {
             "type": "integer",
@@ -138,9 +136,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": {
-              "enum": ["doh-rollout.doorhanger-shown", "doh-rollout.self-enabled", "doh-rollout.disable-heuristics"]
-            }
+            "enum": ["doh-rollout.doorhanger-shown", "doh-rollout.self-enabled", "doh-rollout.disable-heuristics", "doh-rollout.doneFirstRun", "doh-rollout.skipHeuristicsCheck"]
           },
           {
             "type": "boolean",
@@ -156,9 +152,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": {
-              "enum": ["doh-rollout.doorhanger-decision"]
-            }
+            "enum": ["doh-rollout.doorhanger-decision"]
           },
           {
             "type": "string",
@@ -174,9 +168,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": {
-              "enum": ["doh-rollout.doorhanger-decision"]
-            }
+            "enum": ["doh-rollout.doorhanger-decision"]
           },
           {
             "type": "string",
@@ -192,9 +184,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": {
-              "enum": ["doh-rollout.self-enabled"]
-            }
+            "enum": ["doh-rollout.self-enabled"]
           }
         ],
         "async": true
