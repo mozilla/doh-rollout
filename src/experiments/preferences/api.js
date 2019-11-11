@@ -13,36 +13,17 @@ Cu2.import("resource://gre/modules/ExtensionPreferencesManager.jsm");
 
 const TRR_URI_PREF = "network.trr.uri";
 const TRR_DISABLE_ECS_PREF = "network.trr.disable-ECS";
-const TRR_MODE_PREF = "network.trr.mode";
 
 ExtensionPreferencesManager.addSetting("dohRollout.state", {
   prefNames: [
     TRR_URI_PREF,
     TRR_DISABLE_ECS_PREF,
-    TRR_MODE_PREF,
   ],
 
-  setCallback(value) {
+  setCallback() {
     let prefs = {};
     prefs[TRR_URI_PREF] = "https://mozilla.cloudflare-dns.com/dns-query";
     prefs[TRR_DISABLE_ECS_PREF] = true;
-    prefs[TRR_MODE_PREF] = 0;
-
-    switch (value) {
-    case "uninstalled":
-      break;
-    case "disabled":
-      break;
-    case "manuallyDisabled":
-      break;
-    case "UIOk":
-    case "enabled":
-      prefs[TRR_MODE_PREF] = 2;
-      break;
-    case "UIDisabled":
-      prefs[TRR_MODE_PREF] = 5;
-      break;
-    }
     return prefs;
   },
 });
@@ -56,12 +37,28 @@ var preferences = class preferences extends ExtensionAPI {
           async getIntPref(name, defaultValue) {
             return Services.prefs.getIntPref(name, defaultValue);
           },
+          async setIntPref(name, defaultValue) {
+            return Services.prefs.setIntPref(name, defaultValue);
+          },
           async getBoolPref(name, defaultValue) {
             return Services.prefs.getBoolPref(name, defaultValue);
+          },
+          async setBoolPref(name, defaultValue) {
+            return Services.prefs.setBoolPref(name, defaultValue);
+          },
+          async getCharPref(name, defaultValue) {
+            return Services.prefs.getCharPref(name, defaultValue);
+          },
+          async setCharPref(name, defaultValue) {
+            return Services.prefs.setCharPref(name, defaultValue);
+          },
+          async clearUserPref(name) {
+            return Services.prefs.clearUserPref(name);
           },
           async prefHasUserValue(name) {
             return Services.prefs.prefHasUserValue(name);
           },
+
 
           onPrefChanged: new EventManager({
             context,
@@ -71,8 +68,10 @@ var preferences = class preferences extends ExtensionAPI {
                 fire.async();
               };
               Services.prefs.addObserver("doh-rollout.enabled", observer);
+              Services.prefs.addObserver("doh-rollout.remote-disable", observer);
               return () => {
                 Services.prefs.removeObserver("doh-rollout.enabled", observer);
+                Services.prefs.removeObserver("doh-rollout.remote-disable", observer);
               };
             },
           }).api(),
