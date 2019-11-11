@@ -2,57 +2,108 @@
 /* global browser, runHeuristics */
 
 function log() {
+  // eslint-disable-next-line no-constant-condition
   if (false) {
+    // eslint-disable-next-line no-console
     console.log(...arguments);
   }
 }
 
+// Gate-keeping pref to run the add-on
+const DOH_ENABLED_PREF = "doh-rollout.enabled";
+
+// Pref that sets DoH to on/off. It has multiple modes:
+// 0: Off (default)
+// 1: null (No setting)
+// 2: Enabled, but will fall back to 0 on DNS lookup failure
+// 3: Always on.
+// 4: null (No setting)
+// 5: Never on.
 const TRR_MODE_PREF = "network.trr.mode";
+
+// This preference is set to TRUE when DoH has been enabled via the add-on. It will
+// allow the add-on to continue to function without the aid of the Normandy-triggered pref
+// of "doh-rollout.enabled". Note that instead of setting it to false, it is cleared.
+const DOH_SELF_ENABLED_PREF = "doh-rollout.self-enabled";
+
+// This pref is part of a cache mechanism to see if the heuristics dictated a change in the DoH settings
+const DOH_PREVIOUS_TRR_MODE_PREF = "doh-rollout.previous.trr.mode";
+
+// Set after doorhanger has been interacted with by the user
+const DOH_DOORHANGER_SHOWN_PREF = "doh-rollout.doorhanger-shown";
+
+// Records if the user opted in/out of DoH study by clicking on doorhanger
+const DOH_DOORHANGER_USER_DECISION_PREF = "doh-rollout.doorhanger-decision";
+
+// Records if user has decided to opt out of study, either by disabling via the doorhanger,
+// unchecking "DNS-over-HTTPS" with about:preferences, or manually setting network.trr.mode
+const DOH_DISABLED_PREF = "doh-rollout.disable-heuristics";
 
 const stateManager = {
   async setState(state) {
+    log("setState: ", state);
     browser.experiments.preferences.state.set({ value: state });
+
+    switch (state) {
+    case "uninstalled":
+      break;
+    case "disabled":
+      rollout.setSetting(TRR_MODE_PREF, 0);
+      break;
+    case "manuallyDisabled":
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
+      break;
+    case "UIOk":
+      rollout.setSetting(DOH_SELF_ENABLED_PREF, true);
+      break;
+    case "enabled":
+      rollout.setSetting(TRR_MODE_PREF, 2);
+      rollout.setSetting(DOH_SELF_ENABLED_PREF, true);
+      break;
+    case "UIDisabled":
+      rollout.setSetting(TRR_MODE_PREF, 5);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
+      break;
+    }
+
     await browser.experiments.heuristics.sendStatePing(state);
     await stateManager.rememberTRRMode();
   },
 
   async rememberTRRMode() {
-    let curMode = await browser.experiments.preferences.getUserPref(TRR_MODE_PREF, 0);
+    let curMode = await browser.experiments.preferences.getIntPref(TRR_MODE_PREF, 0);
     log("Saving current trr mode:", curMode);
-    await rollout.setSetting("doh-rollout.previous.trr.mode", curMode);
+    await rollout.setSetting(DOH_PREVIOUS_TRR_MODE_PREF, curMode, true);
   },
 
   async rememberDoorhangerShown() {
+    // This will be shown on startup and netChange events until a user clicks
+    // to confirm/disable DoH or presses the esc key (confirming)
     log("Remembering that doorhanger has been shown");
-    await rollout.setSetting("doh-rollout.doorhanger-shown", true);
-  },
-
-  async rememberDoorhangerPingSent() {
-    log("Remembering that doorhanger ping has been sent");
-    await rollout.setSetting("doh-rollout.doorhanger-ping-sent", true);
+    await rollout.setSetting(DOH_DOORHANGER_SHOWN_PREF, true);
   },
 
   async rememberDoorhangerDecision(decision) {
     log("Remember doorhanger decision:", decision);
-    await rollout.setSetting("doh-rollout.doorhanger-decision", decision);
+    await rollout.setSetting(DOH_DOORHANGER_USER_DECISION_PREF, decision, true);
   },
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
-    await rollout.setSetting("doh-rollout.disable-heuristics", true);
+    await rollout.setSetting(DOH_DISABLED_PREF, true);
   },
 
   async shouldRunHeuristics() {
-    // Check if heursitics has been disabled from rememberDisableHeuristics()
-    let disableHeuristics = await rollout.getSetting("doh-rollout.disable-heuristics", false);
+    // Check if heuristics has been disabled from rememberDisableHeuristics()
+    let disableHeuristics = await rollout.getSetting(DOH_DISABLED_PREF, false);
     if (disableHeuristics) {
       // Do not modify DoH for this user.
       log("disableHeuristics has been enabled.");
       return false;
     }
 
-    let prevMode = await rollout.getSetting("doh-rollout.previous.trr.mode", 0);
-    let curMode = await browser.experiments.preferences.getUserPref(
+    let prevMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
+    let curMode = await browser.experiments.preferences.getIntPref(
       TRR_MODE_PREF, 0);
 
     log("Comparing previous trr mode to current mode:",
@@ -71,12 +122,16 @@ const stateManager = {
 
     if (prevMode !== curMode) {
       log("Mismatched, curMode: ", curMode);
-      if (curMode === 0) {
+      // Cache results for Telemetry send, including setting eval reason
+      let results = await runHeuristics();
+      results.evaluateReason = "userModified";
+      if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
+        browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
         await stateManager.rememberDisableHeuristics();
       } else {
         // Check if trr.mode is not in default value.
-        await rollout.trrModePrefHasUserValueCheck();
+        await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch", results);
       }
       return false;
     }
@@ -86,20 +141,33 @@ const stateManager = {
   },
 
   async shouldShowDoorhanger() {
-    let doorhangerShown = await rollout.getSetting("doh-rollout.doorhanger-shown", false);
-    let doorhangerPingSent = await rollout.getSetting("doh-rollout.doorhanger-ping-sent", false);
-
-    // If we've shown the doorhanger but haven't sent the ping,
-    // we assume that the doorhanger timed out
-    if (doorhangerShown && !(doorhangerPingSent)) {
-      await stateManager.setState("UITimeout");
-      await stateManager.rememberDoorhangerDecision("UITimeout");
-      await stateManager.rememberDoorhangerPingSent();
-    }
-
+    let doorhangerShown = await rollout.getSetting(DOH_DOORHANGER_SHOWN_PREF, false);
     log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
+  },
+
+  async showDoorHangerAndEnableDoH() {
+    browser.experiments.doorhanger.onDoorhangerAccept.addListener(
+      rollout.doorhangerAcceptListener
+    );
+    browser.experiments.doorhanger.onDoorhangerDecline.addListener(
+      rollout.doorhangerDeclineListener
+    );
+    await browser.experiments.doorhanger.show({
+      name: browser.i18n.getMessage("doorhangerName"),
+      text: "<> " + browser.i18n.getMessage("doorhangerBody"),
+      okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
+      okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
+      cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
+      cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
+    });
+
+    // Be default, enable DoH when showing the doorhanger,
+    // if heuristics returned no reason to not run.
+    await stateManager.setState("enabled");
+    return;
   }
+
 };
 
 
@@ -110,18 +178,21 @@ const rollout = {
     log("Doorhanger accepted on tab", tabId);
     await stateManager.setState("UIOk");
     await stateManager.rememberDoorhangerDecision("UIOk");
-    await stateManager.rememberDoorhangerPingSent();
+    await stateManager.rememberDoorhangerShown();
   },
 
   async doorhangerDeclineListener(tabId) {
     log("Doorhanger declined on tab", tabId);
     await stateManager.setState("UIDisabled");
     await stateManager.rememberDoorhangerDecision("UIDisabled");
-    await stateManager.rememberDoorhangerPingSent();
+    let results = await runHeuristics();
+    results.evaluateReason = "doorhangerDecline";
+    browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
     await stateManager.rememberDisableHeuristics();
+    await stateManager.rememberDoorhangerShown();
   },
 
-  async netChangeListener(reason) {
+  async netChangeListener() {
     // Possible race condition between multiple notifications?
     let curTime = new Date().getTime() / 1000;
     let timePassed = curTime - notificationTime;
@@ -161,64 +232,157 @@ const rollout = {
   },
 
   async getSetting(name, defaultValue) {
-    let data = await browser.storage.local.get(name);
-    let value = data[name];
-    if (value === undefined) {
-      return defaultValue;
+
+    if (defaultValue === undefined){
+      throw new Error(`Missing defaultValue argument when trying to fetch pref: ${JSON.stringify(name)}`);
     }
-    return data[name];
+
+    switch (typeof defaultValue) {
+    case "boolean":
+      log("boolean", name, await browser.experiments.preferences.getBoolPref(name, defaultValue));
+      return await browser.experiments.preferences.getBoolPref(name, defaultValue);
+    case "number":
+      log("bumber", name, await browser.experiments.preferences.getIntPref(name, defaultValue));
+      return await browser.experiments.preferences.getIntPref(name, defaultValue);
+    case "string":
+      log("btring", name, await browser.experiments.preferences.getCharPref(name, defaultValue));
+      return await browser.experiments.preferences.getCharPref(name, defaultValue);
+    }
   },
 
+
+  /**
+   * Exposed
+   *
+   * @param  {type} name  description
+   * @param  {type} value description
+   * @return {type}       description
+   */
   async setSetting(name, value) {
-    await browser.storage.local.set({[name]: value});
+    // Based on type of pref, set pref accordingly
+    switch (typeof value) {
+    case "boolean":
+      await browser.experiments.preferences.setBoolPref(name, value);
+      break;
+    case "number":
+      await browser.experiments.preferences.setIntPref(name, value);
+      break;
+    case "string":
+      await browser.experiments.preferences.setCharPref(name, value);
+      break;
+    default:
+      throw new Error("setSetting typeof value unknown!");
+    }
   },
 
-  async trrModePrefHasUserValueCheck() {
-    log("trrModePrefHasUserValueCheck");
+  async trrModePrefHasUserValue(event, results) {
+
+    results.evaluateReason = event;
+
+    // Reset skipHeuristicsCheck
+    await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+
     // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
-    // This runs only on the FIRST time that add-on is enabled, and if the stored pref
-    // mismatches the current pref (Meaning something outside of the add-on has changed it
+    // This runs only on the FIRST time that add-on is enabled and if the stored pref
+    // mismatches the current pref (Meaning something outside of the add-on has changed it)
+
     if (
       await browser.experiments.preferences.prefHasUserValue(
         TRR_MODE_PREF)
     ) {
-      // TODO: Add telemtery ping for user who already has pref on DoH
+      // Send ping that user had specific trr.mode pref set before add-on study was ran.
+      // Note that this does not include the trr.mode - just that the addon cannot be ran.
+      browser.experiments.heuristics.sendHeuristicsPing("prefHasUserValue", results);
       await stateManager.rememberDisableHeuristics();
       return;
     }
   },
 
+  async enterprisePolicyCheck(event, results) {
+    results.evaluateReason = event;
+
+    // Reset skipHeuristicsCheck
+    await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+
+    // Check for Policies before running the rest of the heuristics
+    let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
+
+    switch (policyEnableDoH) {
+    case "enable_doh":
+      log("Policy requires DoH enabled.");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
+    case "policy_without_doh":
+      log("Policy does not mention DoH.");
+      await stateManager.setState("disabled");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
+    case "disable_doh":
+      log("Policy requires DoH to be disabled.");
+      browser.experiments.heuristics.sendHeuristicsPing(policyEnableDoH, results);
+      break;
+    case "no_policy_set":
+    }
+
+    // Determine to skip additional heuristics (by presence of an enterprise policy)
+    if (policyEnableDoH === "no_policy_set") {
+      // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
+      await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+    } else {
+      // Don't check for prefHasUserValue if policy is set to disable DoH
+      await rollout.setSetting("doh-rollout.skipHeuristicsCheck", true);
+    }
+    return;
+
+  },
+
   async init() {
     log("calling init");
-    let doneFirstRun = await this.getSetting("doneFirstRun");
 
-    if (!doneFirstRun) {
-      log("first run!");
-      this.setSetting("doneFirstRun", true);
-      await this.trrModePrefHasUserValueCheck();
-
-    } else {
-      log("not first run!");
-    }
+    // Check if the add-on has run before
+    let doneFirstRun = await rollout.getSetting("doh-rollout.doneFirstRun", false);
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
 
+    // Cache runHeuristics results for first run/start up checks
+    let results = await runHeuristics();
+
+    if (!doneFirstRun) {
+      log("first run!");
+      await rollout.setSetting("doh-rollout.doneFirstRun", true);
+      // Check if user has a set a custom pref only on first run, not on each startup
+      await this.trrModePrefHasUserValue("first_run", results);
+      await this.enterprisePolicyCheck("first_run", results);
+    } else {
+      log("not first run!");
+      await this.enterprisePolicyCheck("startup", results);
+    }
+
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-    if (shouldRunHeuristics) {
-      await rollout.main();
+    let skipHeuristicsCheck = await rollout.getSetting("doh-rollout.skipHeuristicsCheck", false);
+    log("skipHeuristicsCheck: ", skipHeuristicsCheck);
+
+    if (!skipHeuristicsCheck) {
+      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+      if (shouldRunHeuristics) {
+        await rollout.main();
+      }
     }
 
     // Listen for network change events to run heuristics again
-    browser.experiments.netChange.onConnectionChanged.addListener(async (reason) => {
+    browser.experiments.netChange.onConnectionChanged.addListener(async () => {
       log("onConnectionChanged");
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+      let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
+
       if (shouldRunHeuristics) {
         const netChangeDecision = await rollout.heuristics("netChange");
         if (netChangeDecision === "disable_doh") {
           await stateManager.setState("disabled");
+        } else if (shouldShowDoorhanger) {
+          await stateManager.showDoorHangerAndEnableDoH();
         } else {
           await stateManager.setState("enabled");
         }
@@ -260,48 +424,68 @@ const rollout = {
     // If the heuristics say to enable DoH, determine if the doorhanger
     // should be shown
     } else if (shouldShowDoorhanger) {
-      browser.experiments.doorhanger.onDoorhangerAccept.addListener(
-        rollout.doorhangerAcceptListener
-      );
-      browser.experiments.doorhanger.onDoorhangerDecline.addListener(
-        rollout.doorhangerDeclineListener
-      );
-      await browser.experiments.doorhanger.show({
-        name: browser.i18n.getMessage("doorhangerName"),
-        text: "<> " + browser.i18n.getMessage("doorhangerBody"),
-        okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
-        okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
-        cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
-        cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
-      });
-
-      await stateManager.rememberDoorhangerShown();
-
-    // If the doorhanger doesn't need to be shown and the heuristics
-    // say to enable DoH, enable it
+      await stateManager.showDoorHangerAndEnableDoH();
     } else {
+      // Doorhanger has been shown before and did not opt-out
       await stateManager.setState("enabled");
     }
   },
 };
 
+async function checkNormandyAddonStudy() {
+  const study = await browser.normandyAddonStudy.getStudy();
+
+  if (typeof study === "undefined" || study === undefined) {
+    log("No Normandy study detected!");
+    return false;
+  }
+
+  const branch = study.branch;
+  switch (branch) {
+  case "doh-rollout-heuristics":
+    return true;
+  case "doh-rollout-disabled":
+    return false;
+  default:
+    throw new Error(`Unexpected study branch: ${JSON.stringify(branch)}`);
+  }
+}
+
 const setup = {
-  enabled: false,
   async start() {
-    log("Start");
-    let runAddon = await browser.experiments.preferences.getUserPref("doh-rollout.enabled", false);
-    if (!runAddon && !this.enabled) {
-      log("First run");
-    } else if (!runAddon) {
-      log("Disabling");
-      this.enabled = false;
-      browser.storage.local.clear();
-      await stateManager.setState("disabled");
-    } else {
-      this.enabled = true;
-      rollout.init();
+    const isNormandyStudy = await checkNormandyAddonStudy();
+    const isAddonDisabled = await rollout.getSetting(DOH_DISABLED_PREF, false);
+    const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
+    const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
+    const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
+
+    log(runAddonPref);
+
+    if (isAddonDisabled) {
+      // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
+      // DoH status will not be modified from whatever the current setting is at runtime
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
+      log("Addon has been disabled. DoH status will not be modified from current setting");
+      await stateManager.rememberDisableHeuristics();
+      return;
     }
 
+    if (
+      runAddonPref ||
+      runAddonBypassPref ||
+      runAddonDoorhangerDecision === "UIOk" ||
+      runAddonDoorhangerDecision === "enabled" ||
+      isNormandyStudy
+    ) {
+      // Confirms that the Normandy/default branch gate keeping pref is set to true,
+      // the self-enabled pref has been activated or if a user has accepted/enabled
+      // DoH if the normandyAddonStudy branch is set to "enable"!
+      rollout.init();
+    } else {
+      log("Init not ran on startup. Watching `doh-rollout.enabled` pref for change event");
+    }
+
+    // Set listener for Normandy pref update past inital startup
     browser.experiments.preferences.onPrefChanged.addListener(() => this.start());
   }
 };

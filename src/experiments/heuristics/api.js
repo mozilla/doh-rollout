@@ -5,7 +5,9 @@ let Cu3 = Components.utils;
 Cu3.import("resource://gre/modules/Services.jsm");
 
 function log() {
+  // eslint-disable-next-line no-constant-condition
   if (false) {
+    // eslint-disable-next-line no-console
     console.log(...arguments);
   }
 }
@@ -19,13 +21,13 @@ const TELEMETRY_EVENTS = {
   "evaluate": {
     methods: [ "evaluate" ],
     objects: [ "heuristics" ],
-    extra_keys: ["google", "youtube", "canary", "modifiedRoots", "browserParent", "thirdPartyRoots", "policy", "evaluateReason"],
+    extra_keys: ["google", "youtube", "zscalerCanary", "canary", "modifiedRoots", "browserParent", "thirdPartyRoots", "policy", "evaluateReason"],
     record_on_release: true,
   },
   "state": {
     methods: ["state"],
     objects: ["loaded", "enabled", "disabled", "manuallyDisabled", "uninstalled",
-      "UIOk", "UIDisabled", "UITimeout"],
+      "UIOk", "UIDisabled"],
     extra_keys: [],
     record_on_release: true,
   }
@@ -51,8 +53,8 @@ const heuristicsManager = {
     if (Services.policies.status === Services.policies.ACTIVE) {
       let policies = Services.policies.getActivePolicies();
       if (!("DNSOverHTTPS" in policies)) {
-        // If DoH isn't in the policy, disable it
-        return "disable_doh";
+        // If DoH isn't in the policy, return that there is a policy (but no DoH specifics)
+        return "policy_without_doh";
       } else {
         let dohPolicy = policies.DNSOverHTTPS;
         if (dohPolicy.Enabled === true) {
@@ -65,8 +67,8 @@ const heuristicsManager = {
       }
     }
 
-    // Enable DoH by default
-    return "enable_doh";
+    // Default return, meaning no policy related to DNSOverHTTPS
+    return "no_policy_set";
   },
 
   async checkParentalControls() {
@@ -99,7 +101,7 @@ const heuristicsManager = {
 
 
 var heuristics = class heuristics extends ExtensionAPI {
-  getAPI(context) {
+  getAPI() {
     return {
       experiments: {
         heuristics: {

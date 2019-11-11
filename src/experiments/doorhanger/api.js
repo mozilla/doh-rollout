@@ -1,6 +1,7 @@
 "use strict";
-/* global Services, ChromeUtils, BrowserWindowTracker, 
+/* global Services, ChromeUtils, BrowserWindowTracker,
    ExtensionCommon, ExtensionAPI */
+/* exported doorhanger */
 
 ChromeUtils.import("resource://gre/modules/Console.jsm");
 ChromeUtils.import("resource://gre/modules/Services.jsm");
@@ -54,21 +55,8 @@ class DoorhangerEventEmitter extends EventEmitter {
       },
     ];
 
-    let notification;
-
     let learnMoreURL = Services.urlFormatter.formatURL("https://support.mozilla.org/%LOCALE%/kb/firefox-dns-over-https");
 
-    let doorhangerEvents = event => {
-      // If additional event listening is needed, recommend switching
-      // to a switch case statement.
-      if (event !== "dismissed") {
-        return;
-      }
-      // On notification removal (switch away from active tab, close tab), enable DoH preference
-      self.emit("doorhanger-accept", tabId);
-      recentWindow.PopupNotifications.remove(notification);
-    };
-    
     const options = {
       hideClose: true,
       persistWhileVisible: true,
@@ -78,13 +66,10 @@ class DoorhangerEventEmitter extends EventEmitter {
       popupIconURL: "chrome://browser/skin/connection-secure.svg",
       learnMoreURL,
       escAction: "buttoncommand",
-      eventCallback: doorhangerEvents,
       removeOnDismissal: false,
     };
 
-
-
-    notification = recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
+    recentWindow.PopupNotifications.show(browser, "doh-first-time", text, null, primaryAction, secondaryActions, options);
   }
 }
 

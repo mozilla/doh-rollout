@@ -1,27 +1,25 @@
 "use strict";
 /* exported netChange */
-/* global Cc, Ci, Components, EventManager, ExtensionAPI, Services */
+/* global Cc, Ci, Components, EventManager, ExtensionAPI, Services, ExtensionCommon */
 let Cu4 = Components.utils;
 Cu4.import("resource://gre/modules/Services.jsm");
 Cu4.import("resource://gre/modules/ExtensionCommon.jsm");
 
-
-const { clearTimeout, setTimeout } = Cu4.import(
+const { setTimeout } = Cu4.import(
   "resource://gre/modules/Timer.jsm"
 );
 
-var {EventManager, EventEmitter} = ExtensionCommon;
+var {EventManager} = ExtensionCommon;
 let gNetworkLinkService= Cc["@mozilla.org/network/network-link-service;1"]
   .getService(Ci.nsINetworkLinkService);
-
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let last_event = Date.now();
+let netChangeWaiting = false;
 
-var netChange = class netChange extends ExtensionAPI { 
+var netChange = class netChange extends ExtensionAPI {
   getAPI(context) {
     return {
       experiments: {
@@ -31,18 +29,18 @@ var netChange = class netChange extends ExtensionAPI {
             name: "netChange.onConnectionChanged",
             register: fire => {
               let observer = async (subject, topic, data) => {
-                // if we get "up" event we should fire an event.
-                if (data === "up") {
-                  last_event = Date.now();
-                  fire.async(data);
+                if (netChangeWaiting) {
+                  return;
                 }
-
-                if (data === "changed") {
-                  // We will coalesce event that are less than 5s apart.
-                  if ( Date.now() - last_event > 5000 &&  gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
-                    last_event = Date.now();
+                if (data === "changed" || data === "up") {
+                  // Trigger the netChangeWaiting switch, initiating 5sec timeout 
+                  netChangeWaiting = true;
+                  await sleep(60000);
+                  if (gNetworkLinkService.linkStatusKnown && gNetworkLinkService.isLinkUp) {
                     fire.async(data);
                   }
+                  // Reset the netChangeWaiting switch
+                  netChangeWaiting = false;
                 }
               };
 

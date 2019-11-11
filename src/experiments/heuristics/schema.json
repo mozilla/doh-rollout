@@ -32,6 +32,10 @@
                 "description": "Indicates whether YouTube safe-search is enabled",
                 "type": "string"
               },
+              "zscalerCanary": {
+                "description": "Indicates whether Zscaler's Shift is enabled",
+                "type": "string"
+              },
               "canary": {
                 "description": "Indicates whether global canary domain was filtered",
                 "type": "string"

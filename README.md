@@ -1,4 +1,4 @@
-## DoH Roll-Out
+## DoH Rollout
 
 This is a WebExtension + Experimental API to gradually roll out [DNS-over-HTTP](https://support.mozilla.org/en-US/kb/firefox-dns-over-https) to Firefox users.
 
@@ -20,13 +20,15 @@ OR
    - Select `manifest.json`
    - Select `src/web-ext-artifacts/dns_over_https-${VERSION}.zip`
 
-You should see a new entry in the list of extensions titled "DoH Roll-Out".
+You should see a new entry in the list of extensions titled "DoH Rollout".
 
 To see the banner [create a new boolean pref](https://support.mozilla.org/en-US/kb/about-config-editor-firefox#w_adding-changing-and-resetting-preferences) `doh-rollout.enabled` in [about:config](about:config) and set to `true`.
 
 This will run heuristics against your network settings to determine if DoH can safely be enabled. If it can, it will trigger a doorhanger notification announcing that is has been enabled.
 
 To check if DoH is turned on, check the value of pref `network.trr.mode`. If it is enabled, it will be set to `2`.
+
+[Telemetry][telemetry-schema-link] will be sent each time heuristics are evaluated.
 
 ## Dependencies
 
@@ -50,6 +52,7 @@ This module is licensed under the [Mozilla Public License, version 2.0][license-
 [coc-link]: docs/code_of_conduct.md
 [security-link]: docs/security.md
 [license-link]: /LICENSE
+[telemetry-schema-link]: docs/telemetry.md
 
 ## Press Releases
 

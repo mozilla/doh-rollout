@@ -1,5 +1,6 @@
 "use strict";
 /* global browser */
+/* exported runHeuristics */
 
 
 const GLOBAL_CANARY = "use-application-dns.net";
@@ -27,7 +28,7 @@ async function dnsListLookup(domainList) {
   let results = [];
   for (let i = 0; i < domainList.length; i++) {
     let domain = domainList[i];
-    let {addresses, _} = await dnsLookup(domain);
+    let {addresses} = await dnsLookup(domain);
     results = results.concat(addresses);
   }
   return results;
@@ -90,6 +91,22 @@ async function safeSearch() {
   return safeSearchChecks;
 }
 
+
+async function zscalerCanary() {
+  const ZSCALER_CANARY = "sitereview.zscaler.com";
+  let {addresses} = await dnsLookup(ZSCALER_CANARY);
+  for (let j = 0; j < addresses.length; j++) {
+    let answer = addresses[j];
+    if (answer == "213.152.228.242" || answer == "199.168.151.251" || answer == "8.25.203.30") {
+      // if sitereview.zscaler.com resolves to either one of the 3 IPs above,
+      // Zscaler Shift service is in use, don't enable DoH
+      return "disable_doh";
+    }
+  }
+  return "enable_doh";
+}
+
+
 // TODO: Confirm the expected behavior when filtering is on
 async function globalCanary() {
   let {addresses, err} = await dnsLookup(GLOBAL_CANARY);
@@ -104,7 +121,8 @@ async function globalCanary() {
 
 
 async function modifiedRoots() {
-  let rootsEnabled = await browser.experiments.preferences.getUserPref(
+  // Check for presence of enterprise_roots cert pref. If enabled, disable DoH
+  let rootsEnabled = await browser.experiments.preferences.getBoolPref(
     "security.enterprise_roots.enabled", false);
   if (rootsEnabled) {
     return "disable_doh";
@@ -114,6 +132,7 @@ async function modifiedRoots() {
 
 async function runHeuristics() {
   let safeSearchChecks = await safeSearch();
+  let zscalerCheck = await zscalerCanary();
   let canaryCheck = await globalCanary();
   let modifiedRootsCheck = await modifiedRoots();
 
@@ -125,6 +144,7 @@ async function runHeuristics() {
   // Return result of each heuristic
   let heuristics = {"google": safeSearchChecks.google,
     "youtube": safeSearchChecks.youtube,
+    "zscalerCanary": zscalerCheck,
     "canary": canaryCheck,
     "modifiedRoots": modifiedRootsCheck,
     "browserParent": browserParentCheck,
