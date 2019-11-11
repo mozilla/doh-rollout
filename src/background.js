@@ -435,7 +435,7 @@ const rollout = {
 async function checkNormandyAddonStudy() {
   const study = await browser.normandyAddonStudy.getStudy();
 
-  if (study === undefined) {
+  if (typeof study === "undefined" || study === undefined) {
     log("No Normandy study detected!");
     return false;
   }
