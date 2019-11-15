@@ -90,6 +90,7 @@ const stateManager = {
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
+    browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
     await rollout.setSetting(DOH_DISABLED_PREF, true);
   },
 
@@ -464,7 +465,6 @@ const setup = {
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
-      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       log("Addon has been disabled. DoH status will not be modified from current setting");
       await stateManager.rememberDisableHeuristics();
       return;
