@@ -90,7 +90,6 @@ const stateManager = {
 
   async rememberDisableHeuristics() {
     log("Remembering to never run heuristics again");
-    browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
     await rollout.setSetting(DOH_DISABLED_PREF, true);
   },
 
@@ -129,7 +128,9 @@ const stateManager = {
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
         browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
+        browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
         await stateManager.rememberDisableHeuristics();
+
       } else {
         // Check if trr.mode is not in default value.
         await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch", results);
@@ -241,23 +242,23 @@ const rollout = {
     switch (typeof defaultValue) {
     case "boolean":
       log({
-        "type": "boolean",
-        "name": name,
-        "value": await browser.experiments.preferences.getBoolPref(name, defaultValue)
+        type: "boolean",
+        name,
+        value: await browser.experiments.preferences.getBoolPref(name, defaultValue)
       });
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
       log({
-        "type": "number",
-        "name": name,
-        "value": await browser.experiments.preferences.getIntPref(name, defaultValue)
+        type: "number",
+        name,
+        value: await browser.experiments.preferences.getIntPref(name, defaultValue)
       });
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
       log({
-        "type": "string",
-        "name": name,
-        "value": await browser.experiments.preferences.getCharPref(name, defaultValue)
+        type: "string",
+        name,
+        value: await browser.experiments.preferences.getCharPref(name, defaultValue)
       });
       return await browser.experiments.preferences.getCharPref(name, defaultValue);
     }
@@ -306,6 +307,7 @@ const rollout = {
       // Send ping that user had specific trr.mode pref set before add-on study was ran.
       // Note that this does not include the trr.mode - just that the addon cannot be ran.
       browser.experiments.heuristics.sendHeuristicsPing("prefHasUserValue", results);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       await stateManager.rememberDisableHeuristics();
       return;
     }
