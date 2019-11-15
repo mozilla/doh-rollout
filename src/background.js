@@ -240,13 +240,25 @@ const rollout = {
 
     switch (typeof defaultValue) {
     case "boolean":
-      log("boolean", name, await browser.experiments.preferences.getBoolPref(name, defaultValue));
+      log({
+        "type": "boolean",
+        "name": name,
+        "value": await browser.experiments.preferences.getBoolPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
-      log("bumber", name, await browser.experiments.preferences.getIntPref(name, defaultValue));
+      log({
+        "type": "number",
+        "name": name,
+        "value": await browser.experiments.preferences.getIntPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
-      log("btring", name, await browser.experiments.preferences.getCharPref(name, defaultValue));
+      log({
+        "type": "string",
+        "name": name,
+        "value": await browser.experiments.preferences.getCharPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getCharPref(name, defaultValue);
     }
   },
@@ -459,8 +471,6 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
-
-    log(runAddonPref);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
