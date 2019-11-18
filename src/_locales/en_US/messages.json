@@ -21,8 +21,8 @@
   "doorhangerButtonOkAccessKey": {
     "message": "O"
   },
-  "doorhangerButtonCancel": {
-    "message": "Disable Protection",
+  "doorhangerButtonCancel2": {
+    "message": "Disable",
     "description": "Pressing this button disables DoH"
   },
   "doorhangerButtonCancelAccessKey": {

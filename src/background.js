@@ -160,7 +160,7 @@ const stateManager = {
       text: "<> " + browser.i18n.getMessage("doorhangerBody"),
       okLabel: browser.i18n.getMessage("doorhangerButtonOk"),
       okAccessKey: browser.i18n.getMessage("doorhangerButtonOkAccessKey"),
-      cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel"),
+      cancelLabel: browser.i18n.getMessage("doorhangerButtonCancel2"),
       cancelAccessKey: browser.i18n.getMessage("doorhangerButtonCancelAccessKey"),
     });
 
