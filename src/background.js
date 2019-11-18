@@ -1,9 +1,12 @@
 "use strict";
 /* global browser, runHeuristics */
 
+// Cache showConsoleLogs pref on browser start
+let showConsoleLogs;
+
 async function log() {
   // eslint-disable-next-line no-constant-condition
-  const showConsoleLogs = await browser.experiments.preferences.getBoolPref("doh-rollout.debug", false);
+
   if ( showConsoleLogs ) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
@@ -73,24 +76,24 @@ const stateManager = {
 
   async rememberTRRMode() {
     let curMode = await browser.experiments.preferences.getIntPref(TRR_MODE_PREF, 0);
-    log("Saving current trr mode:", curMode);
+    await log("Saving current trr mode:", curMode);
     await rollout.setSetting(DOH_PREVIOUS_TRR_MODE_PREF, curMode, true);
   },
 
   async rememberDoorhangerShown() {
     // This will be shown on startup and netChange events until a user clicks
     // to confirm/disable DoH or presses the esc key (confirming)
-    log("Remembering that doorhanger has been shown");
+    await log("Remembering that doorhanger has been shown");
     await rollout.setSetting(DOH_DOORHANGER_SHOWN_PREF, true);
   },
 
   async rememberDoorhangerDecision(decision) {
-    log("Remember doorhanger decision:", decision);
+    await log("Remember doorhanger decision:", decision);
     await rollout.setSetting(DOH_DOORHANGER_USER_DECISION_PREF, decision, true);
   },
 
   async rememberDisableHeuristics() {
-    log("Remembering to never run heuristics again");
+    await log("Remembering to never run heuristics again");
     await rollout.setSetting(DOH_DISABLED_PREF, true);
   },
 
@@ -145,7 +148,7 @@ const stateManager = {
 
   async shouldShowDoorhanger() {
     let doorhangerShown = await rollout.getSetting(DOH_DOORHANGER_SHOWN_PREF, false);
-    log("Should show doorhanger:", !doorhangerShown);
+    await log("Should show doorhanger:", !doorhangerShown);
     return !doorhangerShown;
   },
 
@@ -242,21 +245,21 @@ const rollout = {
 
     switch (typeof defaultValue) {
     case "boolean":
-      log({
+      await log({
         type: "boolean",
         name,
         value: await browser.experiments.preferences.getBoolPref(name, defaultValue)
       });
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
-      log({
+      await log({
         type: "number",
         name,
         value: await browser.experiments.preferences.getIntPref(name, defaultValue)
       });
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
-      log({
+      await log({
         type: "string",
         name,
         value: await browser.experiments.preferences.getCharPref(name, defaultValue)
@@ -365,7 +368,7 @@ const rollout = {
     let results = await runHeuristics();
 
     if (!doneFirstRun) {
-      log("first run!");
+      await log("first run!");
       await rollout.setSetting("doh-rollout.doneFirstRun", true);
       // Check if user has a set a custom pref only on first run, not on each startup
       await this.trrModePrefHasUserValue("first_run", results);
@@ -377,7 +380,7 @@ const rollout = {
 
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
     let skipHeuristicsCheck = await rollout.getSetting("doh-rollout.skipHeuristicsCheck", false);
-    log("skipHeuristicsCheck: ", skipHeuristicsCheck);
+    await log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
     if (!skipHeuristicsCheck) {
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
@@ -452,7 +455,7 @@ async function checkNormandyAddonStudy() {
   const study = await browser.normandyAddonStudy.getStudy();
 
   if (typeof study === "undefined" || study === undefined) {
-    log("No Normandy study detected!");
+    await log("No Normandy study detected!");
     return false;
   }
 
@@ -475,12 +478,14 @@ const setup = {
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
 
+    showConsoleLogs = await browser.experiments.preferences.getBoolPref("doh-rollout.debug", false);
+
     await log( await browser.storage.local.get() );
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
-      log("Addon has been disabled. DoH status will not be modified from current setting");
+      await log("Addon has been disabled. DoH status will not be modified from current setting");
       await stateManager.rememberDisableHeuristics();
       return;
     }
@@ -497,7 +502,7 @@ const setup = {
       // DoH if the normandyAddonStudy branch is set to "enable"!
       rollout.init();
     } else {
-      log("Init not ran on startup. Watching `doh-rollout.enabled` pref for change event");
+      await log("Init not ran on startup. Watching `doh-rollout.enabled` pref for change event");
     }
 
     // Set listener for Normandy pref update past inital startup
