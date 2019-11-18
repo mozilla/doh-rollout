@@ -128,7 +128,9 @@ const stateManager = {
       if (curMode === 0 || curMode === 5) {
         // If user has manually set trr.mode to 0, and it was previously something else.
         browser.experiments.heuristics.sendHeuristicsPing("disable_doh", results);
+        browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
         await stateManager.rememberDisableHeuristics();
+
       } else {
         // Check if trr.mode is not in default value.
         await rollout.trrModePrefHasUserValue("shouldRunHeuristics_mismatch", results);
@@ -239,13 +241,25 @@ const rollout = {
 
     switch (typeof defaultValue) {
     case "boolean":
-      log("boolean", name, await browser.experiments.preferences.getBoolPref(name, defaultValue));
+      log({
+        type: "boolean",
+        name,
+        value: await browser.experiments.preferences.getBoolPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
-      log("bumber", name, await browser.experiments.preferences.getIntPref(name, defaultValue));
+      log({
+        type: "number",
+        name,
+        value: await browser.experiments.preferences.getIntPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
-      log("btring", name, await browser.experiments.preferences.getCharPref(name, defaultValue));
+      log({
+        type: "string",
+        name,
+        value: await browser.experiments.preferences.getCharPref(name, defaultValue)
+      });
       return await browser.experiments.preferences.getCharPref(name, defaultValue);
     }
   },
@@ -293,6 +307,7 @@ const rollout = {
       // Send ping that user had specific trr.mode pref set before add-on study was ran.
       // Note that this does not include the trr.mode - just that the addon cannot be ran.
       browser.experiments.heuristics.sendHeuristicsPing("prefHasUserValue", results);
+      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       await stateManager.rememberDisableHeuristics();
       return;
     }
@@ -459,12 +474,9 @@ const setup = {
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
 
-    log(runAddonPref);
-
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
-      browser.experiments.preferences.clearUserPref(DOH_SELF_ENABLED_PREF);
       log("Addon has been disabled. DoH status will not be modified from current setting");
       await stateManager.rememberDisableHeuristics();
       return;
