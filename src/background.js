@@ -373,8 +373,9 @@ const rollout = {
       return;
     }
 
-    // Check all local items, and migrate them to prefs. If no value set, ignore them.
-    const localStorageItems = [
+    // Check all local storage keys from v1.0.4 users and migrate them to prefs.
+    // This only applies to keys that have a value.
+    const legacyLocalStorageKeys = [
       "doneFirstRun",
       "skipHeuristicsCheck",
       DOH_ENABLED_PREF,
@@ -388,7 +389,7 @@ const rollout = {
       DOH_DONE_FIRST_RUN_PREF
     ];
 
-    for (let item of localStorageItems) {
+    for (let item of legacyLocalStorageKeys) {
       let data = await browser.storage.local.get(item);
       let value = data[item];
 
