@@ -43,6 +43,18 @@ const DOH_DOORHANGER_USER_DECISION_PREF = "doh-rollout.doorhanger-decision";
 // unchecking "DNS-over-HTTPS" with about:preferences, or manually setting network.trr.mode
 const DOH_DISABLED_PREF = "doh-rollout.disable-heuristics";
 
+// Set to true when a user has ANY enterprise policy set, making sure to not run
+// heuristics, overwritting the policy.
+const DOH_SKIP_HEURISTICS_PREF = "doh-rollout.skipHeuristicsCheck";
+
+// Records when the add-on has been run once. This is in place to only check
+// network.trr.mode for prefHasUserValue on first run.
+const DOH_DONE_FIRST_RUN_PREF = "doh-rollout.doneFirstRun";
+
+// This pref is set once a migration function has ran, updating local storage items to the
+// new doh-rollot.X namespace. This applies to both `doneFirstRun` and `skipHeuristicsCheck`.
+const DOH_BALROG_MIGRATION_PREF = "doh-rollout.balrog-migration-done";
+
 // If set to true, debug logging will be enabled.
 const DOH_DEBUG_PREF = "doh-rollout.debug";
 
@@ -301,7 +313,7 @@ const rollout = {
     results.evaluateReason = event;
 
     // Reset skipHeuristicsCheck
-    await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+    await rollout.setSetting(DOH_SKIP_HEURISTICS_PREF, false);
 
     // This confirms if a user has modified DoH (via the TRR_MODE_PREF) outside of the addon
     // This runs only on the FIRST time that add-on is enabled and if the stored pref
@@ -324,7 +336,7 @@ const rollout = {
     results.evaluateReason = event;
 
     // Reset skipHeuristicsCheck
-    await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+    await rollout.setSetting(DOH_SKIP_HEURISTICS_PREF, false);
 
     // Check for Policies before running the rest of the heuristics
     let policyEnableDoH = await browser.experiments.heuristics.checkEnterprisePolicies();
@@ -349,20 +361,66 @@ const rollout = {
     // Determine to skip additional heuristics (by presence of an enterprise policy)
     if (policyEnableDoH === "no_policy_set") {
       // Resetting skipHeuristicsCheck in case a user had a policy and then removed it!
-      await rollout.setSetting("doh-rollout.skipHeuristicsCheck", false);
+      await rollout.setSetting(DOH_SKIP_HEURISTICS_PREF, false);
     } else {
       // Don't check for prefHasUserValue if policy is set to disable DoH
-      await rollout.setSetting("doh-rollout.skipHeuristicsCheck", true);
+      await rollout.setSetting(DOH_SKIP_HEURISTICS_PREF, true);
     }
     return;
 
+  },
+
+  async migrateLocalStoragePrefs() {
+
+    // Migrate updated local storage item names. If this has already been done once, skip the migration
+    const isMigrated = await browser.experiments.preferences.getBoolPref(DOH_BALROG_MIGRATION_PREF, false);
+
+    if (isMigrated) {
+      log("User has been migrated.");
+      return;
+    }
+
+    // Check all local storage keys from v1.0.4 users and migrate them to prefs.
+    // This only applies to keys that have a value.
+    const legacyLocalStorageKeys = [
+      "doneFirstRun",
+      "skipHeuristicsCheck",
+      DOH_ENABLED_PREF,
+      TRR_MODE_PREF,
+      DOH_SELF_ENABLED_PREF,
+      DOH_PREVIOUS_TRR_MODE_PREF,
+      DOH_DOORHANGER_SHOWN_PREF,
+      DOH_DOORHANGER_USER_DECISION_PREF,
+      DOH_DISABLED_PREF,
+      DOH_SKIP_HEURISTICS_PREF,
+      DOH_DONE_FIRST_RUN_PREF
+    ];
+
+    for (let item of legacyLocalStorageKeys) {
+      let data = await browser.storage.local.get(item);
+      let value = data[item];
+
+      if (data.hasOwnProperty(item)) {
+        let migratedName = item;
+
+        if (!item.startsWith("doh-rollout.")){
+          migratedName = "doh-rollout." + item;
+        }
+
+        await this.setSetting(migratedName, value);
+      }
+    }
+
+    // Set pref to skip this function in the future.
+    browser.experiments.preferences.setBoolPref(DOH_BALROG_MIGRATION_PREF, true);
+    log("Remembering that this user has been migrated.");
   },
 
   async init() {
     log("calling init");
 
     // Check if the add-on has run before
-    let doneFirstRun = await rollout.getSetting("doh-rollout.doneFirstRun", false);
+    let doneFirstRun = await rollout.getSetting(DOH_DONE_FIRST_RUN_PREF, false);
 
     // Register the events for sending pings
     browser.experiments.heuristics.setupTelemetry();
@@ -372,7 +430,7 @@ const rollout = {
 
     if (!doneFirstRun) {
       log("first run!");
-      await rollout.setSetting("doh-rollout.doneFirstRun", true);
+      await rollout.setSetting(DOH_DONE_FIRST_RUN_PREF, true);
       // Check if user has a set a custom pref only on first run, not on each startup
       await this.trrModePrefHasUserValue("first_run", results);
       await this.enterprisePolicyCheck("first_run", results);
@@ -382,7 +440,7 @@ const rollout = {
     }
 
     // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-    let skipHeuristicsCheck = await rollout.getSetting("doh-rollout.skipHeuristicsCheck", false);
+    let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
     if (!skipHeuristicsCheck) {
@@ -475,6 +533,9 @@ async function checkNormandyAddonStudy() {
 
 const setup = {
   async start() {
+    // Run Migration First, to continue to run rest of start up logic
+    await rollout.migrateLocalStoragePrefs();
+
     const isNormandyStudy = await checkNormandyAddonStudy();
     const isAddonDisabled = await rollout.getSetting(DOH_DISABLED_PREF, false);
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);

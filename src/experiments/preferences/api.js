@@ -68,11 +68,9 @@ var preferences = class preferences extends ExtensionAPI {
                 fire.async();
               };
               Services.prefs.addObserver("doh-rollout.enabled", observer);
-              Services.prefs.addObserver("doh-rollout.remote-disable", observer);
               Services.prefs.addObserver("doh-rollout.debug", observer);
               return () => {
                 Services.prefs.removeObserver("doh-rollout.enabled", observer);
-                Services.prefs.removeObserver("doh-rollout.remote-disable", observer);
                 Services.prefs.removeObserver("doh-rollout.debug", observer);
               };
             },
