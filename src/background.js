@@ -369,6 +369,7 @@ const rollout = {
     const isMigrated = await browser.experiments.preferences.getBoolPref(DOH_BALROG_MIGRATION_PREF, false);
 
     if (isMigrated) {
+      log("User has been migrated.");
       return;
     }
 
@@ -391,19 +392,20 @@ const rollout = {
       let data = await browser.storage.local.get(item);
       let value = data[item];
 
-      let migratedName = name;
+      if (data.hasOwnProperty(item)) {
+        let migratedName = item;
 
-      if (!name.startsWith("doh-rollout.")){
-        migratedName = "doh-rollout." + name;
-      }
+        if (!item.startsWith("doh-rollout.")){
+          migratedName = "doh-rollout." + item;
+        }
 
-      if (value !== undefined) {
         await this.setSetting(migratedName, value);
       }
     }
 
     // Set pref to skip this function in the future.
     browser.experiments.preferences.setBoolPref(DOH_BALROG_MIGRATION_PREF, true);
+    log("Remembering that this user has been migrated.");
   },
 
   async init() {
