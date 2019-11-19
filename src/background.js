@@ -1,9 +1,13 @@
 "use strict";
 /* global browser, runHeuristics */
 
-function log() {
+// Cache showConsoleLogs/DOH_DEBUG_PREF pref. This value is set during setup.start(),
+// based on the `doh-rollout.debug` pref. When the pref is changed, this is updated.
+let showConsoleLogs;
+
+async function log() {
   // eslint-disable-next-line no-constant-condition
-  if (false) {
+  if ( showConsoleLogs ) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
   }
@@ -50,6 +54,9 @@ const DOH_DONE_FIRST_RUN_PREF = "doh-rollout.doneFirstRun";
 // This pref is set once a migration function has ran, updating local storage items to the
 // new doh-rollot.X namespace. This applies to both `doneFirstRun` and `skipHeuristicsCheck`.
 const DOH_BALROG_MIGRATION_PREF = "doh-rollout.balrog-migration-done";
+
+// If set to true, debug logging will be enabled.
+const DOH_DEBUG_PREF = "doh-rollout.debug";
 
 const stateManager = {
   async setState(state) {
@@ -534,6 +541,8 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
+
+    showConsoleLogs = await browser.experiments.preferences.getBoolPref(DOH_DEBUG_PREF, false);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
