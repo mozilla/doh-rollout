@@ -532,13 +532,6 @@ const setup = {
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
 
-<<<<<<< HEAD
-    log(runAddonPref);
-
-
-
-=======
->>>>>>> master
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
       // DoH status will not be modified from whatever the current setting is at runtime
