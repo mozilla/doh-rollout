@@ -531,6 +531,8 @@ async function checkNormandyAddonStudy() {
 
 const setup = {
   async start() {
+    showConsoleLogs = await browser.experiments.preferences.getBoolPref(DOH_DEBUG_PREF, false);
+
     // Run Migration First, to continue to run rest of start up logic
     await rollout.migrateLocalStoragePrefs();
 
@@ -538,9 +540,7 @@ const setup = {
     const isAddonDisabled = await rollout.getSetting(DOH_DISABLED_PREF, false);
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
-    const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
-
-    showConsoleLogs = await browser.experiments.preferences.getBoolPref(DOH_DEBUG_PREF, false);
+    const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, "");
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
