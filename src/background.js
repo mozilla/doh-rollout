@@ -261,6 +261,7 @@ const rollout = {
     switch (typeof defaultValue) {
     case "boolean":
       log({
+        context: "getSetting",
         type: "boolean",
         name,
         value: await browser.experiments.preferences.getBoolPref(name, defaultValue)
@@ -268,6 +269,7 @@ const rollout = {
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
       log({
+        context: "getSetting",
         type: "number",
         name,
         value: await browser.experiments.preferences.getIntPref(name, defaultValue)
@@ -275,6 +277,7 @@ const rollout = {
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
       log({
+        context: "getSetting",
         type: "string",
         name,
         value: await browser.experiments.preferences.getCharPref(name, defaultValue)
@@ -396,7 +399,7 @@ const rollout = {
       let data = await browser.storage.local.get(item);
       let value = data[item];
 
-      log({item, value});
+      log({context: "migration", item, value});
 
       if (data.hasOwnProperty(item)) {
         let migratedName = item;
@@ -541,6 +544,7 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, "");
+    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
@@ -555,6 +559,7 @@ const setup = {
       runAddonBypassPref ||
       runAddonDoorhangerDecision === "UIOk" ||
       runAddonDoorhangerDecision === "enabled" ||
+      runAddonPreviousTRRMode === 2 ||
       isNormandyStudy
     ) {
       // Confirms that the Normandy/default branch gate keeping pref is set to true,
