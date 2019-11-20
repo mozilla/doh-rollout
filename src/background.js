@@ -386,19 +386,17 @@ const rollout = {
       "doneFirstRun",
       "skipHeuristicsCheck",
       DOH_ENABLED_PREF,
-      TRR_MODE_PREF,
-      DOH_SELF_ENABLED_PREF,
       DOH_PREVIOUS_TRR_MODE_PREF,
       DOH_DOORHANGER_SHOWN_PREF,
       DOH_DOORHANGER_USER_DECISION_PREF,
       DOH_DISABLED_PREF,
-      DOH_SKIP_HEURISTICS_PREF,
-      DOH_DONE_FIRST_RUN_PREF
     ];
 
     for (let item of legacyLocalStorageKeys) {
       let data = await browser.storage.local.get(item);
       let value = data[item];
+
+      log({item, value});
 
       if (data.hasOwnProperty(item)) {
         let migratedName = item;
