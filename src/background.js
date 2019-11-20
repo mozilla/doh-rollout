@@ -560,6 +560,7 @@ const setup = {
       runAddonDoorhangerDecision === "UIOk" ||
       runAddonDoorhangerDecision === "enabled" ||
       runAddonPreviousTRRMode === 2 ||
+      runAddonPreviousTRRMode === 0 ||
       isNormandyStudy
     ) {
       // Confirms that the Normandy/default branch gate keeping pref is set to true,
