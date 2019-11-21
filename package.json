@@ -1,6 +1,6 @@
 {
 	"name": "doh-rollout",
-	"version": "1.2.0rc1",
+	"version": "1.2.0rc2",
 	"description": "DoH Roll-Out",
 	"main": "background.js",
 	"scripts": {

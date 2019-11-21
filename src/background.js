@@ -261,6 +261,7 @@ const rollout = {
     switch (typeof defaultValue) {
     case "boolean":
       log({
+        context: "getSetting",
         type: "boolean",
         name,
         value: await browser.experiments.preferences.getBoolPref(name, defaultValue)
@@ -268,6 +269,7 @@ const rollout = {
       return await browser.experiments.preferences.getBoolPref(name, defaultValue);
     case "number":
       log({
+        context: "getSetting",
         type: "number",
         name,
         value: await browser.experiments.preferences.getIntPref(name, defaultValue)
@@ -275,6 +277,7 @@ const rollout = {
       return await browser.experiments.preferences.getIntPref(name, defaultValue);
     case "string":
       log({
+        context: "getSetting",
         type: "string",
         name,
         value: await browser.experiments.preferences.getCharPref(name, defaultValue)
@@ -386,19 +389,17 @@ const rollout = {
       "doneFirstRun",
       "skipHeuristicsCheck",
       DOH_ENABLED_PREF,
-      TRR_MODE_PREF,
-      DOH_SELF_ENABLED_PREF,
       DOH_PREVIOUS_TRR_MODE_PREF,
       DOH_DOORHANGER_SHOWN_PREF,
       DOH_DOORHANGER_USER_DECISION_PREF,
       DOH_DISABLED_PREF,
-      DOH_SKIP_HEURISTICS_PREF,
-      DOH_DONE_FIRST_RUN_PREF
     ];
 
     for (let item of legacyLocalStorageKeys) {
       let data = await browser.storage.local.get(item);
       let value = data[item];
+
+      log({context: "migration", item, value});
 
       if (data.hasOwnProperty(item)) {
         let migratedName = item;
@@ -533,6 +534,8 @@ async function checkNormandyAddonStudy() {
 
 const setup = {
   async start() {
+    showConsoleLogs = await browser.experiments.preferences.getBoolPref(DOH_DEBUG_PREF, false);
+
     // Run Migration First, to continue to run rest of start up logic
     await rollout.migrateLocalStoragePrefs();
 
@@ -540,9 +543,8 @@ const setup = {
     const isAddonDisabled = await rollout.getSetting(DOH_DISABLED_PREF, false);
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
-    const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, false);
-
-    showConsoleLogs = await browser.experiments.preferences.getBoolPref(DOH_DEBUG_PREF, false);
+    const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, "");
+    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
@@ -557,6 +559,8 @@ const setup = {
       runAddonBypassPref ||
       runAddonDoorhangerDecision === "UIOk" ||
       runAddonDoorhangerDecision === "enabled" ||
+      runAddonPreviousTRRMode === 2 ||
+      runAddonPreviousTRRMode === 0 ||
       isNormandyStudy
     ) {
       // Confirms that the Normandy/default branch gate keeping pref is set to true,
