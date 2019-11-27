@@ -446,9 +446,14 @@ const rollout = {
       }
     });
 
-    browser.captivePortal.onConnectivityAvailable.addListener(
-      rollout.runStartupHeuristics()
-    );
+    browser.captivePortal.onConnectivityAvailable.addListener(async () => {
+      let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
+      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+      if (shouldRunHeuristics && !skipHeuristicsCheck) {
+        rollout.runStartupHeuristics();
+      }
+    });
 
   },
 
