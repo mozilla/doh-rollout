@@ -425,11 +425,8 @@ const rollout = {
     let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
-    if (!skipHeuristicsCheck) {
-      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-      if (shouldRunHeuristics) {
-        await rollout.main();
-      }
+    if (!skipHeuristicsCheck && ( await stateManager.shouldRunHeuristics() )) {
+      await rollout.runStartupHeuristics();
     }
 
     // Listen for network change events to run heuristics again
@@ -451,33 +448,14 @@ const rollout = {
         }
       }
     });
-  },
 
-  async main() {
-    // Listen to the captive portal when it unlocks
-    browser.captivePortal.onStateChanged.addListener(rollout.onReady);
-
-    // If the captive portal is already unlocked or doesn't exist,
-    // run the measurement
-    let captiveState = await browser.captivePortal.getState();
-    log("Captive state:", captiveState);
-    if ((captiveState === "unlocked_portal") ||
-        (captiveState === "not_captive")) {
-      await rollout.onReady({state: captiveState});
-    }
+    browser.captivePortal.onConnectivityAvailable.addListener(
+      rollout.runStartupHeuristics()
+    );
 
   },
 
-  async onReady(details) {
-    // Now that we're here, stop listening to the captive portal
-    browser.captivePortal.onStateChanged.removeListener(rollout.onReady);
-
-    // Only proceed if we're not behind a captive portal
-    if ((details.state !== "unlocked_portal") &&
-        (details.state !== "not_captive")) {
-      return;
-    }
-
+  async runStartupHeuristics() {
     // Run startup heuristics to determine if DoH should be disabled
     let decision = await rollout.heuristics("startup");
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
