@@ -191,9 +191,6 @@ const stateManager = {
 
 };
 
-
-let notificationTime = new Date().getTime() / 1000;
-
 const rollout = {
   async doorhangerAcceptListener(tabId) {
     log("Doorhanger accepted on tab", tabId);
