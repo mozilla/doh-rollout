@@ -213,25 +213,6 @@ const rollout = {
     await stateManager.rememberDoorhangerShown();
   },
 
-  async netChangeListener() {
-    // Possible race condition between multiple notifications?
-    let curTime = new Date().getTime() / 1000;
-    let timePassed = curTime - notificationTime;
-    log("Time passed since last network change:", timePassed);
-    if (timePassed < 30) {
-      return;
-    }
-    notificationTime = curTime;
-
-    // Run heuristics to determine if DoH should be disabled
-    let decision = await rollout.heuristics("netChange");
-    if (decision === "disable_doh") {
-      await stateManager.setState("disabled");
-    } else {
-      await stateManager.setState("enabled");
-    }
-  },
-
   async heuristics(evaluateReason) {
     // Run heuristics defined in heuristics.js and experiments/heuristics/api.js
     let results = await runHeuristics();
