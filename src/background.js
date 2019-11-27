@@ -422,9 +422,9 @@ const rollout = {
     let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
-    if (!skipHeuristicsCheck && (await stateManager.shouldRunHeuristics())) {
-      await rollout.runStartupHeuristics();
-    }
+    await rollout.runStartupHeuristics();
+
+
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async () => {
@@ -447,17 +447,20 @@ const rollout = {
     });
 
     browser.captivePortal.onConnectivityAvailable.addListener(async () => {
-      let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
-      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-
-      if (shouldRunHeuristics && !skipHeuristicsCheck) {
-        rollout.runStartupHeuristics();
-      }
+      rollout.runStartupHeuristics();
     });
 
   },
 
   async runStartupHeuristics() {
+
+    let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
+    let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+    if (!shouldRunHeuristics || skipHeuristicsCheck) {
+      return;
+    }
+
     // Run startup heuristics to determine if DoH should be disabled
     let decision = await rollout.heuristics("startup");
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
