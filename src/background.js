@@ -7,7 +7,7 @@ let showConsoleLogs;
 
 async function log() {
   // eslint-disable-next-line no-constant-condition
-  if ( showConsoleLogs ) {
+  if (showConsoleLogs) {
     // eslint-disable-next-line no-console
     console.log(...arguments);
   }
@@ -422,7 +422,7 @@ const rollout = {
     let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
-    if (!skipHeuristicsCheck && ( await stateManager.shouldRunHeuristics() )) {
+    if (!skipHeuristicsCheck && (await stateManager.shouldRunHeuristics())) {
       await rollout.runStartupHeuristics();
     }
 
