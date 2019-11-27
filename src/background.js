@@ -422,47 +422,33 @@ const rollout = {
     let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     log("skipHeuristicsCheck: ", skipHeuristicsCheck);
 
-    await rollout.runStartupHeuristics();
-
-
+    await rollout.runHeuristics("startup");
 
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async () => {
       log("onConnectionChanged");
+      rollout.runHeuristics("netChange");
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
-      let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
-      let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
-      let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
-
-      if (shouldRunHeuristics && !skipHeuristicsCheck) {
-        const netChangeDecision = await rollout.heuristics("netChange");
-        if (netChangeDecision === "disable_doh") {
-          await stateManager.setState("disabled");
-        } else if (shouldShowDoorhanger) {
-          await stateManager.showDoorHangerAndEnableDoH();
-        } else {
-          await stateManager.setState("enabled");
-        }
-      }
     });
 
     browser.captivePortal.onConnectivityAvailable.addListener(async () => {
-      rollout.runStartupHeuristics();
+      rollout.runHeuristics("onConnectivityAvailable");
     });
 
   },
 
-  async runStartupHeuristics() {
-
+  async runHeuristics(event) {
     let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
     let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
 
     if (!shouldRunHeuristics || skipHeuristicsCheck) {
+      log("Not running heuristics");
+      // Exit early if heuristics should not execute.
       return;
     }
 
     // Run startup heuristics to determine if DoH should be disabled
-    let decision = await rollout.heuristics("startup");
+    let decision = await rollout.heuristics(event);
     let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
     if (decision === "disable_doh") {
       await stateManager.setState("disabled");
@@ -475,7 +461,7 @@ const rollout = {
       // Doorhanger has been shown before and did not opt-out
       await stateManager.setState("enabled");
     }
-  },
+  }
 };
 
 async function checkNormandyAddonStudy() {
