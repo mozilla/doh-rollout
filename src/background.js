@@ -457,8 +457,9 @@ const rollout = {
       // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
       let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
       let shouldShowDoorhanger = await stateManager.shouldShowDoorhanger();
+      let skipHeuristicsCheck = await rollout.getSetting(DOH_SKIP_HEURISTICS_PREF, false);
 
-      if (shouldRunHeuristics) {
+      if (shouldRunHeuristics && !skipHeuristicsCheck) {
         const netChangeDecision = await rollout.heuristics("netChange");
         if (netChangeDecision === "disable_doh") {
           await stateManager.setState("disabled");
