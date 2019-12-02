@@ -544,7 +544,7 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, "");
-    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
+    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, -1);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
