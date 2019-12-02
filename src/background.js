@@ -139,7 +139,7 @@ const stateManager = {
 
     // If there was no previous TRR.MODE recorded (-1) or the current and previous modes match,
     // we should run heuristics!
-    if (prevMode === -1 || prevMode === curMode){
+    if ((prevMode === -1 && curMode === 0) || prevMode === curMode){
       return true;
     }
 
