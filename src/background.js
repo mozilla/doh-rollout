@@ -121,7 +121,7 @@ const stateManager = {
       return false;
     }
 
-    let prevMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
+    let prevMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, -1);
     let curMode = await browser.experiments.preferences.getIntPref(
       TRR_MODE_PREF, 0);
 
@@ -137,8 +137,13 @@ const stateManager = {
     // In other words, if the user has made their own decision for DoH,
     // then we want to respect that and never run the heuristics again
 
-    // On Mismatch - run never run again (make init check a function)
+    // If there was no previous TRR.MODE recorded (-1) or the current and previous modes match,
+    // we should run heuristics!
+    if (prevMode === -1 || prevMode === curMode){
+      return true;
+    }
 
+    // On Mismatch - run never run again (make init check a function)
     if (prevMode !== curMode) {
       log("Mismatched, curMode: ", curMode);
       // Cache results for Telemetry send, including setting eval reason
@@ -156,9 +161,6 @@ const stateManager = {
       }
       return false;
     }
-
-    return true;
-
   },
 
   async shouldShowDoorhanger() {
@@ -544,7 +546,7 @@ const setup = {
     const runAddonPref = await rollout.getSetting(DOH_ENABLED_PREF, false);
     const runAddonBypassPref = await rollout.getSetting(DOH_SELF_ENABLED_PREF, false);
     const runAddonDoorhangerDecision = await rollout.getSetting(DOH_DOORHANGER_USER_DECISION_PREF, "");
-    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, 0);
+    const runAddonPreviousTRRMode = await rollout.getSetting(DOH_PREVIOUS_TRR_MODE_PREF, -1);
 
     if (isAddonDisabled) {
       // Regardless of pref, the user has chosen/heuristics dictated that this add-on should be disabled.
