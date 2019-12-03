@@ -427,11 +427,28 @@ const rollout = {
     // Listen for network change events to run heuristics again
     browser.experiments.netChange.onConnectionChanged.addListener(async () => {
       log("onConnectionChanged");
-      rollout.runHeuristics("netChange");
-      // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+
+      log("Queing a heuristics run in 60s, will cancel if network fluctuates.");
+      rollout.networkSettledTimeout = setTimeout(async () => {
+        log("No network fluctuation for 60 seconds, running heuristics.");
+        // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+        let shouldRunHeuristics = await stateManager.shouldRunHeuristics();
+
+        if (!shouldRunHeuristics) {
+          return;
+        }
+
+        // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+        rollout.runHeuristics("netChange");
+      }, 60000);
     });
 
     browser.captivePortal.onConnectivityAvailable.addListener(async () => {
+      if (rollout.networkSettledTimeout) {
+        log("Canceling queued heuristics run.");
+        clearTimeout(rollout.networkSettledTimeout);
+        rollout.networkSettledTimeout = null;
+      }
       rollout.runHeuristics("onConnectivityAvailable");
     });
 
