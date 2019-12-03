@@ -425,8 +425,19 @@ const rollout = {
     await rollout.runHeuristics("startup");
 
     // Listen for network change events to run heuristics again
-    browser.experiments.netChange.onConnectionChanged.addListener(async () => {
+    browser.networkStatus.onConnectionChanged.addListener(async () => {
       log("onConnectionChanged");
+
+      let linkInfo = await browser.networkStatus.getLinkInfo();
+      if (linkInfo.status !== "up") {
+        log("Link down.");
+        if (rollout.networkSettledTimeout) {
+          log("Canceling queued heuristics run.");
+          clearTimeout(rollout.networkSettledTimeout);
+          rollout.networkSettledTimeout = null;
+        }
+        return;
+      }
 
       log("Queing a heuristics run in 60s, will cancel if network fluctuates.");
       rollout.networkSettledTimeout = setTimeout(async () => {
