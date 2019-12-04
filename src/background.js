@@ -450,6 +450,7 @@ const rollout = {
         }
 
         // Only run the heuristics if user hasn't explicitly enabled/disabled DoH
+        rollout.networkSettledTimeout = null;
         rollout.runHeuristics("netChange");
       }, 60000);
     });
