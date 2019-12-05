@@ -513,6 +513,15 @@ const rollout = {
   },
 };
 
+
+/**
+ * checkNormandyAddonStudy
+ * This functions detects if a Normandy study is present, and then checks the branch
+ * to see the add-on should be enabled. If it gets a branch that it is not expecting,
+ * it throws an error.
+ *
+ * @return {boolean}  description
+ */
 async function checkNormandyAddonStudy() {
   const study = await browser.normandyAddonStudy.getStudy();
 
@@ -524,11 +533,7 @@ async function checkNormandyAddonStudy() {
   const branch = study.branch;
   switch (branch) {
   case "helper":
-    // This case is not return true/false as its user branch contains users from
-    // both the experiement and the control branches. However, this function
-    // in conjunction with migrateLocalStoragePrefs() will turn on for the users
-    // who should, and not for those who shouldn't.
-    return null;
+    return false;
   case "doh-rollout-heuristics":
     return true;
   case "doh-rollout-disabled":
