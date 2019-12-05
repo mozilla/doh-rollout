@@ -513,6 +513,15 @@ const rollout = {
   },
 };
 
+
+/**
+ * checkNormandyAddonStudy
+ * This functions detects if a Normandy study is present, and then checks the branch
+ * to see the add-on should be enabled. If it gets a branch that it is not expecting,
+ * it throws an error.
+ *
+ * @return {boolean}  description
+ */
 async function checkNormandyAddonStudy() {
   const study = await browser.normandyAddonStudy.getStudy();
 
@@ -523,6 +532,8 @@ async function checkNormandyAddonStudy() {
 
   const branch = study.branch;
   switch (branch) {
+  case "helper":
+    return false;
   case "doh-rollout-heuristics":
     return true;
   case "doh-rollout-disabled":
