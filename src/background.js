@@ -523,6 +523,12 @@ async function checkNormandyAddonStudy() {
 
   const branch = study.branch;
   switch (branch) {
+  case "helper":
+    // This case is not return true/false as its user branch contains users from
+    // both the experiement and the control branches. However, this function
+    // in conjunction with migrateLocalStoragePrefs() will turn on for the users
+    // who should, and not for those who shouldn't.
+    return null;
   case "doh-rollout-heuristics":
     return true;
   case "doh-rollout-disabled":
