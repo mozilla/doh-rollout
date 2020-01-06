@@ -1,10 +1,10 @@
 {
   "extensionName": {
-    "message": "DoH 降世",
+    "message": "DoH 推出",
     "description": "DNS over HTTPS add-on name for a gradual release of DoH"
   },
   "extensionDescription": {
-    "message": "附加组件：Mozilla 之 DoH 降世"
+    "message": "Mozilla 为 DoH 功能的阶段性推出而设计的附加组件"
   },
   "doorhangerName": {
     "message": "更安全、经加密的 DNS 查询",
