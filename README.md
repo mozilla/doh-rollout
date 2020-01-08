@@ -1,3 +1,5 @@
+***Note - This repository has been archived as of Tuesday, January 7th, 2020. The DNS-over-HTTPS extension [has been migrated](https://searchfox.org/mozilla-release/source/browser/extensions/doh-rollout) to the Firefox browser as of [Release 72](https://www.mozilla.org/en-US/firefox/72.0/releasenotes/). Please file any issues regarding this extension through [Bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?format=__default__&blocked=1598218&product=Firefox&component=Security).***
+
 ## DoH Rollout
 
 This is a WebExtension + Experimental API to gradually roll out [DNS-over-HTTP](https://support.mozilla.org/en-US/kb/firefox-dns-over-https) to Firefox users.
