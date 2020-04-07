@@ -1,3 +1,10 @@
+## This repo hosts strings used by the DNS Over HTTPS doorhanger UI shipping in Firefox.
+
+This is a temporary setup until the strings are migrated to conform to standard mozilla-central protocol.
+
+
+## Former README below for archival purposes
+
 ***Note - This repository has been archived as of Tuesday, January 7th, 2020. The DNS-over-HTTPS extension [has been migrated](https://searchfox.org/mozilla-release/source/browser/extensions/doh-rollout) to the Firefox browser as of [Release 72](https://www.mozilla.org/en-US/firefox/72.0/releasenotes/). Please file any issues regarding this extension through [Bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?format=__default__&blocked=1598218&product=Firefox&component=Security).***
 
 ## DoH Rollout
